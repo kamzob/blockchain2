@@ -237,3 +237,28 @@ string hashFunkcijaSuDruska(string input)
         return ss.str();
     
 }
+vector<Transakcija> generuotiTransakcijas(vector<Vartotojas>& vartotojai, int transakcijuSk){
+    vector<Transakcija> transakcijos;
+    ofstream fr("transakcijos.txt");
+    for(int i = 0; i < transakcijuSk; i++)
+    {
+        int siuntIndex = rand() % vartotojai.size();
+        int gavIndex = rand() % vartotojai.size();
+        while(siuntIndex==gavIndex)
+        {
+            gavIndex = rand()%vartotojai.size();
+        }
+        Vartotojas siuntejas = vartotojai[siuntIndex];
+        Vartotojas gavejas = vartotojai[gavIndex];
+        double suma = (rand()%static_cast<int>(siuntejas.getBalance())+1);
+        string transakcijosID = hashFunkcija(siuntejas.getpKey() + gavejas.getpKey() + to_string(suma));
+        fr << transakcijosID << " " << siuntejas.getpKey() << " " << gavejas.getpKey() << " " << suma << endl;
+        Transakcija trans(transakcijosID, siuntejas.getpKey(), gavejas.getpKey(), suma);
+        transakcijos.push_back(trans);
+        vartotojai[siuntIndex].setBal(siuntejas.getBalance() - suma);
+        vartotojai[gavIndex].setBal(gavejas.getBalance() + suma);
+        
+    }
+    fr.close();
+    return transakcijos;
+}
