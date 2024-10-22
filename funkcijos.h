@@ -35,6 +35,26 @@ public:
     
 };
 class Transakcija {
+private:
+    string id_;
+    string siuntejas_;
+    string gavejas_;
+    double suma_;
+    
+public:
+    Transakcija()=default;
+    Transakcija(string id, string siunt, string gav, double sum):
+    id_(id), siuntejas_(siunt), gavejas_(gav), suma_(sum) {}
+    //getteriai
+    string getId() const { return id_; }
+    string getSiuntejas() const { return siuntejas_; }
+    string getGavejas() const { return gavejas_; }
+    double getSuma() const { return suma_; }
+    //setteriai
+    void setId(const string& id) { id_ = id; }
+    void setSiuntejas(const string& siuntejas) { siuntejas_ = siuntejas; }
+    void setGavejas(const string& gavejas) { gavejas_ = gavejas; }
+    void setSuma(double suma) { suma_ = suma; }
     
 };
 
