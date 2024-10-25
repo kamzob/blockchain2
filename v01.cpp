@@ -21,6 +21,15 @@ int main()
     {
         cout << vartotojai[i].getVar() << " " << vartotojai[i].getpKey() << " " << vartotojai[i].getBalance() << endl;
     }
+    vector<Transakcija> transakcijos = generuotiTransakcijas(vartotojai, 10000);
+    for (int i = 0; i < 10; i++) {
+          cout << "Transakcija ID: " << transakcijos[i].getId() << endl;
+          cout << "Siuntejas: " << transakcijos[i].getSiuntejas() << endl;
+          cout << "Gavejas: " << transakcijos[i].getGavejas() << endl;
+          cout << "Suma: " << transakcijos[i].getSuma() << endl;
+          cout << "--------------------" << endl;
+      }
+    
     return 0;
 }
 void naudojimosiInstrukcija()
@@ -143,21 +152,7 @@ unsigned long long int leftRotate (unsigned long long int reiksme, unsigned long
 }
 
 
-// Transakcijos struktūra
-struct Transaction {
-    string transaction_id;
-    string sender;
-    string receiver;
-    long long amount;
-};
 
-// Bloko struktūra
-struct Block {
-    string previous_hash;
-    vector<Transaction> transactions;
-    string block_hash;
-    long long nonce;
-};
 vector<Vartotojas> generuotiVartotojus(int n){
     vector<Vartotojas> vartotojai;
     ofstream fr("vartotojai.txt");
@@ -262,3 +257,4 @@ vector<Transakcija> generuotiTransakcijas(vector<Vartotojas>& vartotojai, int tr
     fr.close();
     return transakcijos;
 }
+

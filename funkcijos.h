@@ -9,7 +9,7 @@
 #define funkcijos_h
 
 #include "biblioteka.h"
-
+string hashFunkcija(string input);
 class Vartotojas{
 private:
     string vardas_;
@@ -57,13 +57,75 @@ public:
     void setSuma(double suma) { suma_ = suma; }
     
 };
+class Blokas{
+private:
+    string prev_bloko_hash_;
+    string merkle_root_hash_;
+    string bloko_hash_;
+    string versija_;
+    time_t laikas_;
+    unsigned long long nonce_;
+    int difficulty_target_;
+    vector<Transakcija> transakcijos_;
+    
+public:
+    Blokas(){};
+    Blokas(string prev_blokas,vector<Transakcija> transakcijos, int difficulty_target)
+    : prev_bloko_hash_(prev_blokas), transakcijos_(transakcijos), difficulty_target_(difficulty_target){
+        
+    }
+    string skaiciuotiMerkleRoot()
+    {
+        if(transakcijos_.empty())
+        {
+            return "";
+        }
+        vector<string> hashai;
+        for(const auto& trans: transakcijos_)
+        {
+            hashai.push_back(trans.getId());
+        }
+        while(hashai.size()>1)
+        {
+            if(hashai.size() % 2 != 0){
+                hashai.push_back(hashai.back());
+            }
+            vector<string> naujiHashai;
+            for(size_t i = 0; i < hashai.size(); i+=2)
+            {
+                string komb = hashai[i] + hashai[i+1];
+                naujiHashai.push_back(hashFunkcija(komb));
+            }
+            hashai = naujiHashai;
+        }
+        return hashai[0];
+    }
+    
+    void printBlock() {
+        cout << "Blokas:" << endl;
+        cout << "Versija: " << versija_ << endl;
+        cout << "Ankstesnis bloko hash: " << prev_bloko_hash_ << endl;
+        cout << "Merkle šaknis: " << merkle_root_hash_ << endl;
+        cout << "Timestamp: " << put_time(localtime(&laikas_), "%Y-%m-%d %H:%M:%S") << endl;
+        cout << "Nonce: " << nonce_ << endl;
+        cout << "Bloko hash: " << bloko_hash_ << endl;
+        cout << "Transakcijų kiekis: " << transakcijos_.size() << endl;
+        for (const auto& tx : transakcijos_) {
+            cout << "Transakcija ID: " << tx.getId() << " Siuntėjas: " << tx.getSiuntejas()
+                 << " Gavėjas: " << tx.getGavejas() << " Suma: " << tx.getSuma() << endl;
+        }
+        cout << "-----------------------" << endl;
+    }
+    
+};
 
 void naudojimosiInstrukcija();
-string hashFunkcija(string input);
+
 unsigned long long int rightRotate (unsigned long long int reiksme, unsigned long long int d);
 unsigned long long int leftRotate (unsigned long long int reiksme, unsigned long long int d);
 string druskosGeneravimas(int ilgis);
 string hashFunkcijaSuDruska(string input);
 vector<Vartotojas> generuotiVartotojus(int n);
 double randomDouble ();
+vector<Transakcija> generuotiTransakcijas(vector<Vartotojas>& vartotojai, int transakcijuSk);
 #endif /* funkcijos_h */
