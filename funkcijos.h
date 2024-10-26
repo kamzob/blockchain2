@@ -55,6 +55,12 @@ public:
     void setSiuntejas(const string& siuntejas) { siuntejas_ = siuntejas; }
     void setGavejas(const string& gavejas) { gavejas_ = gavejas; }
     void setSuma(double suma) { suma_ = suma; }
+    void spausdintiTransakcija() const {
+        cout << "Transakcijos ID: " << id_ << endl;
+        cout << "Siuntėjas: " << siuntejas_ << endl;
+        cout << "Gavėjas: " << gavejas_ << endl;
+        cout << "Suma: " << suma_ << endl;
+    }
     
 };
 class Blokas{
@@ -70,9 +76,63 @@ private:
     
 public:
     Blokas(){};
-    Blokas(string prev_blokas,vector<Transakcija> transakcijos, int difficulty_target)
-    : prev_bloko_hash_(prev_blokas), transakcijos_(transakcijos), difficulty_target_(difficulty_target){
+    Blokas(string prev_blokas,vector<Transakcija> transakcijos, int difficulty_target, string versija)
+    : prev_bloko_hash_(prev_blokas), transakcijos_(transakcijos), difficulty_target_(difficulty_target),
+    versija_(versija){
+        laikas_ = time(nullptr);
+        merkle_root_hash_ = skaiciuotiMerkleRoot();
+        nonce_ = 0;
+        bloko_hash_ = mineBlock();
         
+    }
+    string getPrBlockHash() const{
+        return prev_bloko_hash_;
+    }
+    string getMerkleRootHash() const{
+        return merkle_root_hash_;
+    }
+    string getBlokoHash() const{
+        return bloko_hash_;
+    }
+    string getVersion() const{
+        return versija_;
+    }
+    time_t getLaikas() const{
+        return laikas_;
+    }
+    unsigned long long getNonce() const{
+        return nonce_;
+    }
+    int getDiffTarget() const{
+        return difficulty_target_;
+    }
+    vector<Transakcija> getTransact() const{
+        return transakcijos_;
+    }
+    
+    
+    void setPrevBlockHash (string previous_bloko_hash)
+    {
+        prev_bloko_hash_=previous_bloko_hash;
+    }
+    void setMerkleRootHash (string merkle_root_h)
+    {
+        merkle_root_hash_ = merkle_root_h;
+    }
+    void setBlokoHash(string blokoHash)
+    {
+        bloko_hash_ = blokoHash;
+    }
+    void setNonce(unsigned long long nonce){
+        nonce_=nonce;
+    }
+    void setDiffTrgt(int difTarget)
+    {
+        difficulty_target_=difTarget;
+    }
+    void setTrans(vector<Transakcija> trans)
+    {
+        transakcijos_ = trans;
     }
     string skaiciuotiMerkleRoot()
     {
@@ -100,7 +160,15 @@ public:
         }
         return hashai[0];
     }
-    
+    string mineBlock() {
+        string target(difficulty_target_, '0');
+        string hash;
+        do {
+            nonce_++;
+            hash = hashFunkcija(prev_bloko_hash_+merkle_root_hash_+to_string(laikas_)+to_string(nonce_));
+        }while (hash.substr(0, difficulty_target_)!=target);
+        return hash;
+    }
     void printBlock() {
         cout << "Blokas:" << endl;
         cout << "Versija: " << versija_ << endl;
@@ -118,7 +186,11 @@ public:
     }
     
 };
-
+class Blockchain{
+private:
+    vector<Blokas> grandine;
+    int difficulty_target_;
+};
 void naudojimosiInstrukcija();
 
 unsigned long long int rightRotate (unsigned long long int reiksme, unsigned long long int d);
