@@ -29,9 +29,13 @@ public:
     void setBal(double balansas){
         valiutosBal_ = balansas;
     }
+    void atnaujintiBalansa(double suma){
+        valiutosBal_ += suma;
+    }
+    
     string getVar() const { return vardas_;}
     string getpKey() const { return viesRaktas_;}
-    double getBalance() { return valiutosBal_;}
+    double getBalance() const{ return valiutosBal_;}
     
 };
 class Transakcija {
@@ -178,19 +182,76 @@ public:
         cout << "Nonce: " << nonce_ << endl;
         cout << "Bloko hash: " << bloko_hash_ << endl;
         cout << "Transakcijų kiekis: " << transakcijos_.size() << endl;
-        for (const auto& tx : transakcijos_) {
-            cout << "Transakcija ID: " << tx.getId() << " Siuntėjas: " << tx.getSiuntejas()
-                 << " Gavėjas: " << tx.getGavejas() << " Suma: " << tx.getSuma() << endl;
-        }
+//        for (const auto& tx : transakcijos_) {
+//            cout << "Transakcija ID: " << tx.getId() << " Siuntėjas: " << tx.getSiuntejas()
+//                 << " Gavėjas: " << tx.getGavejas() << " Suma: " << tx.getSuma() << endl;
+//        }
         cout << "-----------------------" << endl;
     }
     
 };
-class Blockchain{
-private:
-    vector<Blokas> grandine;
-    int difficulty_target_;
-};
+//class Blockchain {
+//private:
+//    vector<Blokas> blokai_;
+//    vector<Transakcija> nepatvirtintosTransakcijos;
+//    int difficultyTarget;
+//
+//public:
+//    Blockchain(int difficulty)
+//        : difficultyTarget(difficulty) {
+//        // Sukurkite pradžios bloką
+//        vector<Transakcija> pradinesTransakcijos;
+//        Blokas pirmasBlokas("0", pradinesTransakcijos, difficultyTarget, "1.0");
+//        pirmasBlokas.mineBlock();
+//        blokai_.push_back(pirmasBlokas);
+//    }
+//
+//    void pridetiTransakcija(const Transakcija& transakcija) {
+//        nepatvirtintosTransakcijos.push_back(transakcija);
+//    }
+////
+////    vector<Transakcija> pasirinktiAtsitiktinesTransakcijas(int kiekis) {
+////        vector<Transakcija> pasirinktos;
+////        std::random_shuffle(nepatvirtintosTransakcijos.begin(), nepatvirtintosTransakcijos.end());
+////        int count = min(kiekis, (int)nepatvirtintosTransakcijos.size());
+////        pasirinktos.insert(pasirinktos.end(), nepatvirtintosTransakcijos.begin(), nepatvirtintosTransakcijos.begin() + count);
+////        return pasirinktos;
+////    }
+//
+//    void atnaujintiBalansus(vector<Transakcija>& transakcijos) {
+//        // Atnaujinkite vartotojų balansus pagal įvykdytas transakcijas
+//        for (auto& trans : transakcijos) {
+//            // pvz., atnaujinkite siuntėjo ir gavėjo balansus čia
+//            
+//        }
+//    }
+//
+//    void pridetiBloka(Blokas& blokas) {
+//        blokai_.push_back(blokas);
+//    }
+//
+//    void kasimasIrAtnaujinimas() {
+//        while (!nepatvirtintosTransakcijos.empty()) {
+//            vector<Transakcija> transakcijosBlokui = pasirinktiAtsitiktinesTransakcijas(100);
+//
+//            Blokas naujasBlokas(blokai_.back().getBlokoHash(), transakcijosBlokui, difficultyTarget, "1.0");
+//            naujasBlokas.mineBlock();
+//            
+//            pridetiBloka(naujasBlokas);
+//
+//            atnaujintiBalansus(transakcijosBlokui);
+//
+//            // Pašalinkite į bloką įtrauktas transakcijas iš nepatvirtintų sąrašo
+//            for (const auto& trans : transakcijosBlokui) {
+//                auto itr = find(nepatvirtintosTransakcijos.begin(), nepatvirtintosTransakcijos.end(), trans);
+//                if (itr != nepatvirtintosTransakcijos.end()) {
+//                    nepatvirtintosTransakcijos.erase(itr);
+//                }
+//            }
+//        }
+//    }
+//};
+
 void naudojimosiInstrukcija();
 
 unsigned long long int rightRotate (unsigned long long int reiksme, unsigned long long int d);
