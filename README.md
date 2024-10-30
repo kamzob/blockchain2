@@ -1,5 +1,7 @@
 # blockchain2
 # Supaprastintos blokų grandinės kūrimas
+<img width="531" alt="Screenshot 2024-10-30 at 23 29 42" src="https://github.com/user-attachments/assets/dc1216ad-2266-4e50-9187-6e054bc74ab3">
+
 ## Užduoties formuluotė
 Sukurkite "centralizuotą" blokų grandinę (blockchain) ir imituokite jos veikimą kuo realistiškiau. Preliminari veiksmų seka: 
 1. Sugeneruokite ~1000 tinklo vartotojų,turinčių šiuos atributus:
@@ -130,14 +132,22 @@ Sukūrus blokų grandinę, Vartotojas gaus pranešimą, kad sukurta blokų grand
 <img width="352" alt="Screenshot 2024-10-30 at 22 57 46" src="https://github.com/user-attachments/assets/4bf7487f-7aef-4b45-b858-4128cd49e45c">
 1. Pasirinkus išvesti bloką, reikės nurodyti bloko hash(header'į):
 <img width="830" alt="Screenshot 2024-10-30 at 23 05 20" src="https://github.com/user-attachments/assets/f9394c02-3430-4528-9d31-6c274eebce7f">
-2. Pasirinkus išvesti
- transakciją, reikės nurodyti transakcijos ID (siuntėjo pK, gavėjo pK, sumos hash reikšmę):
+
+2. Pasirinkus išvesti transakciją, reikės nurodyti transakcijos ID (siuntėjo pK, gavėjo pK, sumos hash reikšmę):
  <img width="718" alt="Screenshot 2024-10-30 at 23 02 46" src="https://github.com/user-attachments/assets/5c7092f8-f8ae-4cc0-b5ab-f348e3df0c4a">
+ 
 3. Pasirinkus išvesti informaciją apie vartotoją, reikės nurodyti jo viešąjį raktą (public key):
 
 <img width="815" alt="Screenshot 2024-10-30 at 22 59 47" src="https://github.com/user-attachments/assets/a9a38e8d-53b7-4ed0-8c18-e462f9e73081">
 
 
+### Gerosios praktikos
+1. Enkapsuliavimas
+
+Privatūs kintamieji: Visų trijų klasių – `Vartotojas`, `Transakcija` ir `Blokas` – duomenų laukai yra apsaugoti kaip privatūs, kad jų nebūtų galima tiesiogiai keisti iš išorės. Tai apsaugo kritinę informaciją (pvz., vartotojų balansus, bloko hash) nuo netyčinio pakeitimo.
+Vieši getter ir setter metodai: Kiekviena klasė suteikia prieigą prie duomenų naudodama aiškiai apibrėžtus getter ir setter metodus, kurie kontroliuoja prieigą prie privačių kintamųjų ir leidžia užtikrinti, kad duomenys bus keičiami tik saugiai ir tiksliai.
+
+2. Klasėse naudojami konstruktoriai, RAII užtikrina kad resursai bus atlaisvinti, kai jų nebereikės.
 
 
 
