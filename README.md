@@ -151,6 +151,7 @@ Visą blokų grandinės kūrimo procesą galima matyti konsolėje:
 Sukūrus blokų grandinę, Vartotojas gaus pranešimą, kad sukurta blokų grandinė iš tiek ir tiek blokų. Tada jam iššoks meniu, kur jis galės pasirinkti, ką toliau daryti:
 
 <img width="352" alt="Screenshot 2024-10-30 at 22 57 46" src="https://github.com/user-attachments/assets/4bf7487f-7aef-4b45-b858-4128cd49e45c">
+
 1. Pasirinkus išvesti bloką, reikės nurodyti bloko hash(header'į):
 <img width="830" alt="Screenshot 2024-10-30 at 23 05 20" src="https://github.com/user-attachments/assets/f9394c02-3430-4528-9d31-6c274eebce7f">
 
