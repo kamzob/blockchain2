@@ -15,16 +15,19 @@
 //}
 int main()
 {
+    int vartSk = 1000;
+    int transSk = 10000;
+    int difTrgt = 3;
     srand( static_cast<unsigned int>(time(nullptr)));
-   vector<Vartotojas> vartotojai = generuotiVartotojus(1000);
+   vector<Vartotojas> vartotojai = generuotiVartotojus(vartSk);
     for(int i = 0; i < 10; i++)
     {
         cout << vartotojai[i].getVar() << " " << vartotojai[i].getpKey() << " " << vartotojai[i].getBalance() << endl;
     }
-    vector<Transakcija> transakcijosMemPool = generuotiTransakcijas(vartotojai, 10000);
+    vector<Transakcija> transakcijosMemPool = generuotiTransakcijas(vartotojai, transSk);
     vector<Transakcija> tuscia;
     vector<Blokas> blockchain;
-    Blokas genesis("0000000000000000000000000000000000000000000000000000000000000000", tuscia, 2, "1");
+    Blokas genesis("0000000000000000000000000000000000000000000000000000000000000000", tuscia, difTrgt, "1");
     cout << genesis.mineBlock();
     blockchain.push_back(genesis);
     blockchain[0].printBlock();
@@ -40,7 +43,7 @@ int main()
         }
 
         // 2. Sukurti naują bloką su 100 transakcijų
-        Blokas naujasBlokas(blockchain.back().getBlokoHash(), naujoBlokoTransakcijos, 2, "1.0");
+        Blokas naujasBlokas(blockchain.back().getBlokoHash(), naujoBlokoTransakcijos, difTrgt, "1.0");
 
         // 3. Iškasti naują bloką naudojant PoW
         naujasBlokas.mineBlock();
@@ -73,7 +76,7 @@ int main()
         // - Pridėti bloką prie blokų grandinės
         blockchain.push_back(naujasBlokas);
 
-        // Spaudina bloką (patikrinimui)
+        // Spausdina bloką (patikrinimui)
         naujasBlokas.printBlock();
     }
     
@@ -82,87 +85,91 @@ int main()
     {
         fr << vart.getVar() << " " << vart.getpKey() << " " << vart.getBalance() << endl;
     }
+    cout << "Likusios trans" << endl;
+    for (const auto& transakcija : transakcijosMemPool)
+    {
+        transakcija.spausdintiTransakcija();
+    }
     
-
+    cout << "Sukurta bloku grandine is " << blockchain.size() << " bloku" << endl;
+    int rinktis;
+    do{
+        cout << "Pasirinkite ka norite daryti toliau:\n";
+        cout << "1 - isvesti bloka\n";
+        cout << "2 - isvesti transakcija\n";
+        cout << "3 - isvesti vartotoja\n";
+        cout << "4 - baigti darba\n";
+        cin >> rinktis;
+        while(!cin>>rinktis || rinktis <1 || rinktis > 4)
+        {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Klaida! Turite pasirinkti nuo 1 iki 4\n";
+            cin >> rinktis;
+        }
+        switch(rinktis)
+        {
+            case 1:{
+                string hash;
+                cout << "Iveskite bloko hash: \n";
+                cin >> hash;
+                auto it = std::find_if(blockchain.begin(), blockchain.end(), [&](const Blokas& blokas){
+                    return blokas.getBlokoHash() == hash;
+                });
+                if(it != blockchain.end()){
+                    it->printBlock();
+                }
+                else {
+                    cout << "Blokas su siuo hash nerastas.\n";
+                }
+                break;
+                
+            }
+            case 2 :{
+                string transId;
+                cout << "Iveskite transakcijos ID: \n";
+                cin >> transId;
+              bool found = false;
+              for (const auto& blokas : blockchain) {
+                  for (const auto& transakcija : blokas.getTransact()) {
+                      if (transakcija.getId() == transId) {
+                          transakcija.spausdintiTransakcija();
+                          found = true;
+                          break;
+                      }
+                  }
+                  if (found) break;
+              }
+              if (!found) {
+                  cout << "Transakcija su šiuo ID nerasta.\n";
+              }
+              break;
+            }
+            case 3:{
+                string pKey;
+                cout << "Iveskite vartotojo viesaji rakta:\n";
+                cin >> pKey;
+                auto it = std::find_if(vartotojai.begin(), vartotojai.end(), [&](const Vartotojas& vart){
+                    return vart.getpKey()==pKey;
+                });
+                if(it!=vartotojai.end()) {
+                    it->spausdintiUseri();
+                }
+                else {
+                    cout << "Su siuo viesuoju raktu vartotojas nebuvo rastas" << endl;
+                }
+                
+            }
+        }
     
+        
+        
+    } while(rinktis!=4);
 //
     
     return 0;
 }
-void naudojimosiInstrukcija()
-{
-    
-    int rinktis;    // komandos parinkimas
-    do{
-        cout << "Pasirinkite:" << endl;
-        cout << "1 - ivestis ranka\n";
-        cout << "2 - ivestis is failo\n";
-        cout << "3 - generuoti failus\n";
-        cout << "4 - avalanche testavimas\n";
-        cout << "5 - atsparumas kolizijai\n";
-        cout << "6 - konstitucijos testavimas\n";
-        cout << "7 - atlikti mano hash ir sha-256 palyginima\n";
-        cout << "8 - atlikti hiding testavima hash su druska\n";
-        cout << "9 - atlikti puzzle-friendliness testavima hash su druska\n";
-        cout << "10 - baigti darbą\n";
-        cin >> rinktis;
-        while(!cin>>rinktis || rinktis < 1 || rinktis > 10)
-        {
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Klaida! Turite pasirinkti nuo 1 iki 10: \n";
-            cin >> rinktis;
-            
-        }
-        
-        switch (rinktis)
-        {
-            case 1:{
-                string tekstas;
-                cout << "Irasykite norima teksta: \n";
-                //getline(cin,tekstas);
-                cin >> tekstas;
-                cout << "Ivestas tekstas: \n" << tekstas << endl;
-                cout << "Sio teksto hash:\n" << hashFunkcija(tekstas) << endl;
-                break;}
-            case 2:{
-//                string tekstas = skaityti();
-//                cout << hashFunkcija(tekstas) << endl;
-                break;
-            }
-            case 3:{
-//                failuGeneravimas();
-                break;
-            }
-            case 4:{
-//                 AvalancheTestavimas();
-                break;
-            }
-            case 5:{
-//                kolizijosTestavimas();
-                break;
-            }
-            case 6:{
-//                konstitucijosTestavimas();
-                break;
-            }
-            case 7:{
-//                manoHashVS256Hash();
-                break;
-            }
-            case 8:{
-//                hidingTyrimas();
-                break;
-            }
-            case 9:{
-//                puzzleFriendliness();
-                break;
-            }
-        }
-    }while(rinktis!=10);
 
-
-}
 string hashFunkcija(string input)
 {
     const unsigned long long sk1 = 0x100000001b3; //1099511628211 pirminis
