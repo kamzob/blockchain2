@@ -17,6 +17,7 @@
 #include <string>
 #include <random>
 #include <ctime>
+#include <algorithm>
 
 using std::cout;
 using std::cin;
@@ -37,5 +38,6 @@ using std::min;
 using std::max;
 using std::setw;
 using std::to_string;
+using std::put_time;
 
 #endif /* biblioteka_h */
