@@ -20,6 +20,27 @@ ištrinkite į bloką įtrauktas transakcijas iš transakcijų sąrašo;
 "įvykdykite" transakcijas, t.y. atnaujinkite vartotojų balansus;
  pridėkite naują bloką prie blokų grandinės.
 7. Kartokite 3-5 žingsnius, kol yra neįtrauktų transakcijų. Taip pat galite kartoti 1-5 žingsnius, generuodami naujus vartotojus ir transakcijas.
+
+## Hash generatoriaus pseudo-kodas
+
+1. Funkcija priima input'ą bet kokio dydžio
+2. Tada du tiesiog pirminiai dideli skaičiai paimami, užrašau juos šešioliktainiu formatu su priekyje 0x
+3. Susikuriu masyvą 4 elementų (kiekvieno dydis 64 bitai), kurių pradinės reikšmės 0
+4. Suku ciklą per inputo ilgį
+5. Skaitomam simboliui priskiriu ASCII reikšmę
+6. Suku dar vieną ciklą, kuris pereis per visus 4 masyvo elementus
+7. Atlieku XOR operaciją elemento su skaitomo simbolio ASCII reikšme
+8. Tada elementą padauginu su vienu iš pirminių skaičių
+9. Tada vykdau bitų rotaciją į kairę per 13 elementų
+10. Tada vykdau sekančio masyvo elemento bitų rotaciją dešinėn per 17 pozicijų ir atlieku XOR operaciją du dabartiniu masyvo elementu
+11. Tuomet skaitomo simbolio reikšmę padauginu iš antrojo pirminio skaičiaus
+12. Vidinis ciklas baigiasi
+13. Pagrindinis ciklas baigiasi
+14. Inicializuoju tuščią eilutę
+15. Suku ciklą per kiekvieną masyvo elementą
+16. Kiekvieną masyvo elementą pridedu į eilutę kaip 16 simbolių šešioliktainį sk
+17. Grąžinu funkcijos rezultatą
+18. Funkcija baigia darbą
 ## v0.1 versija
 1. Realizuotas 1000 vartotojų generavimas, kurie saugomi vektoriuje. Tam realizuoti buvo sukurta klasė, naudojant gerąsias OOP praktikas:
 ```
