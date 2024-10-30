@@ -143,6 +143,17 @@ transakcijos_ - transakcijų sąrašas įtrauktas į bloką
 <img width="817" alt="Screenshot 2024-10-30 at 22 46 05" src="https://github.com/user-attachments/assets/d29a7b8b-3f18-4d65-a159-d244dc6ad337">
 
 ## Naudojimosi instrukcija
+### Programos paleidimas
+`g++ -o mano_programa v01.cpp -std=c++17`
+`./mano_programa`
+
+Pavyzdys:
+
+<img width="417" alt="Screenshot 2024-10-30 at 23 49 35" src="https://github.com/user-attachments/assets/86d432d5-bb74-49da-86ea-c7b54384c651">
+
+
+### Naudojimas
+
 Paleidus programą, bus sugeneruota 1000 vartotojų, 10000 transakcijų. Tuomet bus sukurta blokų grandinė, inicializuojamas Genesis blokas, kuris bus pridėtas pirmas į blokų grandinę. Tuomet bus vykdomas blokų kūrimas, kuris tęsis tol, kol dar yra nepanaudotų transakcijų mempool'e. Atsitiktinai parenkama 100 transakcijų vienam blokui, jis sukuriamas, tada vyksta jo kasimas. Jei blokas sėkmingai iškastas, transakcijos ištrinamos iš mempoolo, jos įvykdomos, atnaujinami vartotojų balansai. Tuomet blokas pridedamas prie blokų grandinės ir vėl viskas kartojasi kol yra laisvų transakcijų. 
 Visą blokų grandinės kūrimo procesą galima matyti konsolėje:
 
