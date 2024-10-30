@@ -36,6 +36,11 @@ public:
     string getVar() const { return vardas_;}
     string getpKey() const { return viesRaktas_;}
     double getBalance() const{ return valiutosBal_;}
+    void spausdintiUseri() const{
+        cout << "Vardas: " << vardas_ << endl;
+        cout << "Viesasis raktas: " << viesRaktas_ << endl;
+        cout << "Valiutos balansas: " << valiutosBal_ << endl;
+    }
     
 };
 class Transakcija {
@@ -78,6 +83,8 @@ private:
     int difficulty_target_;
     vector<Transakcija> transakcijos_;
     
+    bool isMined = false;
+    
 public:
     Blokas(){};
     Blokas(string prev_blokas,vector<Transakcija> transakcijos, int difficulty_target, string versija)
@@ -113,7 +120,9 @@ public:
     vector<Transakcija> getTransact() const{
         return transakcijos_;
     }
-    
+    bool getIsMined() const {
+        return isMined;
+    }
     
     void setPrevBlockHash (string previous_bloko_hash)
     {
@@ -171,6 +180,7 @@ public:
             nonce_++;
             hash = hashFunkcija(prev_bloko_hash_+merkle_root_hash_+to_string(laikas_)+to_string(nonce_));
         }while (hash.substr(0, difficulty_target_)!=target);
+        isMined = true;
         return hash;
     }
     void printBlock() {
@@ -182,10 +192,10 @@ public:
         cout << "Nonce: " << nonce_ << endl;
         cout << "Bloko hash: " << bloko_hash_ << endl;
         cout << "Transakcijų kiekis: " << transakcijos_.size() << endl;
-//        for (const auto& tx : transakcijos_) {
-//            cout << "Transakcija ID: " << tx.getId() << " Siuntėjas: " << tx.getSiuntejas()
-//                 << " Gavėjas: " << tx.getGavejas() << " Suma: " << tx.getSuma() << endl;
-//        }
+        for (const auto& tx : transakcijos_) {
+            cout << "Transakcija ID: " << tx.getId() << " Siuntėjas: " << tx.getSiuntejas()
+                 << " Gavėjas: " << tx.getGavejas() << " Suma: " << tx.getSuma() << endl;
+        }
         cout << "-----------------------" << endl;
     }
     
