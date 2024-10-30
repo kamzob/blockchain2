@@ -144,8 +144,9 @@ transakcijos_ - transakcijų sąrašas įtrauktas į bloką
 
 ## Naudojimosi instrukcija
 ### Programos paleidimas
-`g++ -o mano_programa v01.cpp -std=c++17`
-`./mano_programa`
+```g++ -o mano_programa v01.cpp -std=c++17```
+
+```./mano_programa```
 
 Pavyzdys:
 
