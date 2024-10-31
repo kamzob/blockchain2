@@ -10,11 +10,14 @@
 
 #include "biblioteka.h"
 string hashFunkcija(string input);
+class UTXO{
+    
+};
 class Vartotojas{
 private:
     string vardas_;
     string viesRaktas_;
-    double valiutosBal_;
+    int valiutosBal_;
 public:
     Vartotojas() = default;
     Vartotojas(string vardas, string publicKey, double balansas):
@@ -26,16 +29,16 @@ public:
     void setpKey(string raktas){
         viesRaktas_ = raktas;
     }
-    void setBal(double balansas){
+    void setBal(int balansas){
         valiutosBal_ = balansas;
     }
-    void atnaujintiBalansa(double suma){
+    void atnaujintiBalansa(int suma){
         valiutosBal_ += suma;
     }
     
     string getVar() const { return vardas_;}
     string getpKey() const { return viesRaktas_;}
-    double getBalance() const{ return valiutosBal_;}
+    int getBalance() const{ return valiutosBal_;}
     void spausdintiUseri() const{
         cout << "Vardas: " << vardas_ << endl;
         cout << "Viesasis raktas: " << viesRaktas_ << endl;
@@ -48,22 +51,22 @@ private:
     string id_;
     string siuntejas_;
     string gavejas_;
-    double suma_;
+    int suma_;
     
 public:
     Transakcija()=default;
-    Transakcija(string id, string siunt, string gav, double sum):
+    Transakcija(string id, string siunt, string gav, int sum):
     id_(id), siuntejas_(siunt), gavejas_(gav), suma_(sum) {}
     //getteriai
     string getId() const { return id_; }
     string getSiuntejas() const { return siuntejas_; }
     string getGavejas() const { return gavejas_; }
-    double getSuma() const { return suma_; }
+    int getSuma() const { return suma_; }
     //setteriai
     void setId(const string& id) { id_ = id; }
     void setSiuntejas(const string& siuntejas) { siuntejas_ = siuntejas; }
     void setGavejas(const string& gavejas) { gavejas_ = gavejas; }
-    void setSuma(double suma) { suma_ = suma; }
+    void setSuma(int suma) { suma_ = suma; }
     void spausdintiTransakcija() const {
         cout << "Transakcijos ID: " << id_ << endl;
         cout << "Siuntėjas: " << siuntejas_ << endl;
@@ -192,10 +195,10 @@ public:
         cout << "Nonce: " << nonce_ << endl;
         cout << "Bloko hash: " << bloko_hash_ << endl;
         cout << "Transakcijų kiekis: " << transakcijos_.size() << endl;
-        for (const auto& tx : transakcijos_) {
-            cout << "Transakcija ID: " << tx.getId() << " Siuntėjas: " << tx.getSiuntejas()
-                 << " Gavėjas: " << tx.getGavejas() << " Suma: " << tx.getSuma() << endl;
-        }
+//        for (const auto& tx : transakcijos_) {
+//            cout << "Transakcija ID: " << tx.getId() << " Siuntėjas: " << tx.getSiuntejas()
+//                 << " Gavėjas: " << tx.getGavejas() << " Suma: " << tx.getSuma() << endl;
+//        }
         cout << "-----------------------" << endl;
     }
     
@@ -269,6 +272,7 @@ unsigned long long int leftRotate (unsigned long long int reiksme, unsigned long
 string druskosGeneravimas(int ilgis);
 string hashFunkcijaSuDruska(string input);
 vector<Vartotojas> generuotiVartotojus(int n);
-double randomDouble ();
+int randomSuma ();
 vector<Transakcija> generuotiTransakcijas(vector<Vartotojas>& vartotojai, int transakcijuSk);
+bool transakcijosTikrinimas(const Transakcija& tx, const std::vector<Vartotojas>& vartotojai);
 #endif /* funkcijos_h */
