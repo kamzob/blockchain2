@@ -6,13 +6,7 @@
 //
 
 #include "funkcijos.h"
-#include "vartotojas.h"
 
-//int main(int argc, const char * argv[]) {
-//    // insert code here...
-//    std::cout << "Hello, World!\n";
-//    return 0;
-//}
 int main()
 {
     int vartSk = 1000;
@@ -20,11 +14,8 @@ int main()
     int difTrgt = 3;
     srand( static_cast<unsigned int>(time(nullptr)));
    vector<Vartotojas> vartotojai = generuotiVartotojus(vartSk);
-    for(int i = 0; i < 10; i++)
-    {
-        cout << vartotojai[i].getVar() << " " << vartotojai[i].getpKey() << " " << vartotojai[i].getBalance() << endl;
-    }
     vector<Transakcija> transakcijosMemPool = generuotiTransakcijas(vartotojai, transSk);
+    cout << "Sugeneruota " << transakcijosMemPool.size() << endl;
     vector<Transakcija> tuscia;
     vector<Blokas> blockchain;
     Blokas genesis("0000000000000000000000000000000000000000000000000000000000000000", tuscia, difTrgt, "1");
@@ -41,16 +32,39 @@ int main()
         } else {
             naujoBlokoTransakcijos = transakcijosMemPool; // jei likę mažiau nei 100
         }
+        
+        // Filtruojame tinkamas transakcijas
+        std::vector<Transakcija> validTransakcijos;
+        for (const auto& transakcija : naujoBlokoTransakcijos) {
+            if (transakcijosTikrinimas(transakcija, vartotojai)) {
+                validTransakcijos.push_back(transakcija); // Įtraukiame tik patvirtintas transakcijas
+            }
+            else
+            {
+                auto it = std::find_if(transakcijosMemPool.begin(), transakcijosMemPool.end(), [&](const Transakcija& t) {
+                    return t.getId() == transakcija.getId();
+                });
+                if (it != transakcijosMemPool.end()) {
+                    transakcijosMemPool.erase(it);
+                }
+                
+            }
+        }
+
+        if (validTransakcijos.empty()) {
+            std::cout << "Nepavyko rasti tinkamų transakcijų šiame cikle." << std::endl;
+            break; // Išėjimas iš ciklo, jei nėra daugiau galiojančių transakcijų
+        }
 
         // 2. Sukurti naują bloką su 100 transakcijų
-        Blokas naujasBlokas(blockchain.back().getBlokoHash(), naujoBlokoTransakcijos, difTrgt, "1.0");
+        Blokas naujasBlokas(blockchain.back().getBlokoHash(), validTransakcijos, difTrgt, "1.0");
 
         // 3. Iškasti naują bloką naudojant PoW
         naujasBlokas.mineBlock();
 
         // 4. Jei sėkmingai rastas tinkamas hash:
         // - Ištrinti transakcijas iš mempool
-        for (const auto& transakcija : naujoBlokoTransakcijos) {
+        for (const auto& transakcija : validTransakcijos) {
             auto it = std::find_if(transakcijosMemPool.begin(), transakcijosMemPool.end(), [&](const Transakcija& t) {
                 return t.getId() == transakcija.getId();
             });
@@ -60,7 +74,7 @@ int main()
         }
 
         // - Atnaujinti vartotojų balansus
-        for (const auto& transakcija : naujoBlokoTransakcijos) {
+        for (const auto& transakcija : validTransakcijos) {
             auto siuntejas = std::find_if(vartotojai.begin(), vartotojai.end(), [&](const Vartotojas& v) {
                 return v.getpKey() == transakcija.getSiuntejas();
             });
@@ -84,11 +98,6 @@ int main()
     for(const auto& vart: vartotojai)
     {
         fr << vart.getVar() << " " << vart.getpKey() << " " << vart.getBalance() << endl;
-    }
-    cout << "Likusios trans" << endl;
-    for (const auto& transakcija : transakcijosMemPool)
-    {
-        transakcija.spausdintiTransakcija();
     }
     
     cout << "Sukurta bloku grandine is " << blockchain.size() << " bloku" << endl;
@@ -228,7 +237,7 @@ vector<Vartotojas> generuotiVartotojus(int n){
         Vartotojas vart;
         vardas = "user"+to_string(i+1);
         pKey = hashFunkcija(vardas);
-        balansas = randomDouble();
+        balansas = randomSuma();
         vart.setVar(vardas);
         vart.setpKey(pKey);
         vart.setBal(balansas);
@@ -240,19 +249,21 @@ vector<Vartotojas> generuotiVartotojus(int n){
     fr.close();
     return vartotojai;
 }
-double randomDouble ()
-{
-    
-    const double min = 100.0;
-    const int max = 1000000.0;
-    static std::default_random_engine generator;
-    static std::uniform_real_distribution<double> distribution(min,max);
-    double random_double = distribution(generator);
-    return random_double;
+int randomSuma() {
+    const int min = 100;
+    const int max = 1000000;
+    static std::default_random_engine generator(static_cast<unsigned int>(time(nullptr)));
+    static std::uniform_int_distribution<int> distribution(min, max);
+    int random_suma = distribution(generator);
+    return random_suma;
 }
-
 vector<Transakcija> generuotiTransakcijas(vector<Vartotojas>& vartotojai, int transakcijuSk){
     vector<Transakcija> transakcijos;
+    std::unordered_map<string, double> laikini_balansai;
+    // Inicializuojame laikinuosius balansus
+    for (const auto& vart : vartotojai) {
+        laikini_balansai[vart.getpKey()] = vart.getBalance();
+    }
     ofstream fr("transakcijos.txt");
     for(int i = 0; i < transakcijuSk; i++)
     {
@@ -264,7 +275,15 @@ vector<Transakcija> generuotiTransakcijas(vector<Vartotojas>& vartotojai, int tr
         }
         Vartotojas siuntejas = vartotojai[siuntIndex];
         Vartotojas gavejas = vartotojai[gavIndex];
-        double suma = (rand()%static_cast<int>(siuntejas.getBalance())+1);
+//
+        int maksimaliSuma = laikini_balansai[siuntejas.getpKey()];
+        if(maksimaliSuma <= 0) {
+            continue;
+        }
+        int suma = rand()%static_cast<int>(maksimaliSuma)+1;
+        // laikinu balansu atnaujinimas
+        laikini_balansai[siuntejas.getpKey()] -= suma;
+        laikini_balansai[gavejas.getpKey()] += suma;
         string transakcijosID = hashFunkcija(siuntejas.getpKey() + gavejas.getpKey() + to_string(suma));
         fr << transakcijosID << " " << siuntejas.getpKey() << " " << gavejas.getpKey() << " " << suma << endl;
         Transakcija trans(transakcijosID, siuntejas.getpKey(), gavejas.getpKey(), suma);
@@ -275,5 +294,25 @@ vector<Transakcija> generuotiTransakcijas(vector<Vartotojas>& vartotojai, int tr
     }
     fr.close();
     return transakcijos;
+}
+bool transakcijosTikrinimas(const Transakcija& tx, const std::vector<Vartotojas>& vartotojai) {
+    auto siuntejas = std::find_if(vartotojai.begin(), vartotojai.end(), [&](const Vartotojas& v) {
+        return v.getpKey() == tx.getSiuntejas();
+    });
+
+    // Balanso tikrinimas
+    if (siuntejas == vartotojai.end() || siuntejas->getBalance() < tx.getSuma()) {
+//        std::cout << "Transakcija atmesta: nepakankamas siuntėjo balansas." << std::endl;
+        return false;
+    }
+
+    // Maišos validacija
+    string calculatedHash = hashFunkcija(tx.getSiuntejas() + tx.getGavejas() + std::to_string(tx.getSuma()));
+    if (calculatedHash != tx.getId()) {
+//        std::cout << "Transakcija atmesta: transakcijos ID nesutampa su apskaičiuota maišos reikšme." << std::endl;
+        return false;
+    }
+
+    return true;  // Transakcija yra tinkama
 }
 
