@@ -316,3 +316,22 @@ bool transakcijosTikrinimas(const Transakcija& tx, const std::vector<Vartotojas>
     return true;  // Transakcija yra tinkama
 }
 
+bool kandidatoKasimas(Blokas& kandidatas, int maxBandymuSkaicius, int maxKasimoLaikas) {
+    auto pradziosLaikas = std::chrono::steady_clock::now();
+    int bandymai = 0;
+
+    while (bandymai < maxBandymuSkaicius) {
+        kandidatas.mineBlock();
+        if (kandidatas.getIsMined()) {
+            return true;
+        }
+        bandymai++;
+
+        auto dabartinisLaikas = std::chrono::steady_clock::now();
+        auto laikasPraejo =std::chrono::duration_cast<std::chrono::seconds>(dabartinisLaikas - pradziosLaikas).count();
+        if (laikasPraejo >= maxKasimoLaikas) {
+            break;
+        }
+    }
+    return false;
+}
