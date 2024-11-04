@@ -11,7 +11,7 @@ int main()
 {
     int vartSk = 1000;
     int transSk = 10000;
-    int difTrgt = 3;
+    int difTrgt = 4;
     int maxKasimoLaikas = 5;
     int maxBandymuSk = 100000;
     srand( static_cast<unsigned int>(time(nullptr)));
@@ -21,9 +21,14 @@ int main()
     vector<Transakcija> tuscia;
     vector<Blokas> blockchain;
     Blokas genesis("0000000000000000000000000000000000000000000000000000000000000000", tuscia, difTrgt, "1", "Nezinomas");
-    cout << genesis.mineBlock();
+    genesis.printBlock();
     blockchain.push_back(genesis);
     vykdytiKasima(blockchain, transakcijosMemPool, vartotojai, maxKasimoLaikas, maxBandymuSk);
+    
+    
+    
+    
+    
     
 //    blockchain[0].printBlock();
 //    
@@ -364,29 +369,37 @@ vector<Vartotojas> generuotiVartotojus(int n){
     {
         string vardas;
         string pKey;
-        double balansas;
-        Vartotojas vart;
         vardas = "user"+to_string(i+1);
         pKey = hashFunkcija(vardas);
-        balansas = randomSuma();
-        vart.setVar(vardas);
-        vart.setpKey(pKey);
-        vart.setBal(balansas);
-        fr << vardas << " " << pKey << " " << balansas << endl;
+        Vartotojas vart(vardas, pKey);
+        int utxoSk = randomSuma(1, 10);
+        vector<UTXO> utxos;
+        fr << vardas << "\n" << pKey << "\n" << "UTXOs:" << endl;
+        for(int i = 0; i < utxoSk; i++)
+        {
+            int suma = randomSuma(100, 100000);
+            UTXO utx(suma, pKey);
+            utxos.push_back(utx);
+            fr << "ID:" << utx.utxoID << " Suma: " << utx.suma_ << endl;
+            
+        }
+        vart.setUTXO(utxos);
+//        balansas = randomSuma();
+
+//        vart.setBal(balansas);
+
         vartotojai.push_back(vart);
-        
-        
+ 
     }
     fr.close();
     return vartotojai;
 }
-int randomSuma() {
-    const int min = 100;
-    const int max = 1000000;
-    static std::default_random_engine generator(static_cast<unsigned int>(time(nullptr)));
-    static std::uniform_int_distribution<int> distribution(min, max);
-    int random_suma = distribution(generator);
-    return random_suma;
+int randomSuma(const int min, const int max) {
+
+    static std::random_device rd;
+      static std::mt19937 generator(rd());  // Užtikrina pakankamą atsitiktinumą
+      std::uniform_int_distribution<int> distribution(min, max);
+      return distribution(generator);
 }
 vector<Transakcija> generuotiTransakcijas(vector<Vartotojas>& vartotojai, int transakcijuSk){
     vector<Transakcija> transakcijos;
@@ -407,16 +420,17 @@ vector<Transakcija> generuotiTransakcijas(vector<Vartotojas>& vartotojai, int tr
         Vartotojas siuntejas = vartotojai[siuntIndex];
         Vartotojas gavejas = vartotojai[gavIndex];
 //
-        int maksimaliSuma = laikini_balansai[siuntejas.getpKey()];
-        if(maksimaliSuma <= 0) {
-            continue;
-        }
-        int suma = rand()%static_cast<int>(maksimaliSuma)+1;
+//        int maksimaliSuma = laikini_balansai[siuntejas.getpKey()];
+//        if(maksimaliSuma <= 0) {
+//            continue;
+//        }
+//        int suma = rand()%static_cast<int>(maksimaliSuma)+1;
         // laikinu balansu atnaujinimas
-        laikini_balansai[siuntejas.getpKey()] -= suma;
-        laikini_balansai[gavejas.getpKey()] += suma;
+//        laikini_balansai[siuntejas.getpKey()] -= suma;
+//        laikini_balansai[gavejas.getpKey()] += suma;
+        int suma = randomSuma(1, 50000);
         string transakcijosID = hashFunkcija(siuntejas.getpKey() + gavejas.getpKey() + to_string(suma));
-        fr << transakcijosID << " " << siuntejas.getpKey() << " " << gavejas.getpKey() << " " << suma << endl;
+        fr << transakcijosID << " " << "\nSiuntejas: "<< siuntejas.getpKey() << " " << "\n Gavejas: " << gavejas.getpKey() << "\n" << "Suma: " << suma << endl;
         Transakcija trans(transakcijosID, siuntejas.getpKey(), gavejas.getpKey(), suma);
         transakcijos.push_back(trans);
 //        vartotojai[siuntIndex].setBal(siuntejas.getBalance() - suma);
@@ -467,12 +481,42 @@ bool kandidatoKasimas(Blokas& kandidatas, int maxBandymuSkaicius, int maxKasimoL
     return false;
 }
 bool kasimasSuKandidatais(vector<Blokas>& kandidatai, int maxBandymuSkaicius, int maxKasimoLaikas) {
-    for (auto& kandidatas : kandidatai) {
-        if (kandidatoKasimas(kandidatas, maxBandymuSkaicius, maxKasimoLaikas)) {
-            return true;
+    std::atomic<bool> blokasSurastas(false);  // Kai vienas kandidatas sėkmingai išminavo bloką, nustatomas į true
+        std::vector<std::thread> threads;
+
+        // Pradėkime lygiagretų kasimą kiekvienam kandidatui
+        for (auto& kandidatas : kandidatai) {
+            threads.emplace_back([&kandidatas, &blokasSurastas, maxBandymuSkaicius, maxKasimoLaikas]() {
+                std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 10));
+                int bandymai = 0;
+                auto pradziosLaikas = std::chrono::steady_clock::now();
+
+                // Kasimo ciklas, kuris vykdomas tol, kol nerandamas blokas ar pasiekiamas laiko/bandymų limitas
+                while (!blokasSurastas && bandymai < maxBandymuSkaicius) {
+                    kandidatas.mineBlock();  // Kasiname bloką
+                    if (kandidatas.getIsMined()) {
+                        blokasSurastas = true;  // Pavyko rasti bloką - sustabdome kitas gijas
+                        break;
+                    }
+                    bandymai++;
+
+                    // Tikriname, ar nepasiekėme kasimo laiko limito
+                    auto dabartinisLaikas = std::chrono::steady_clock::now();
+                    auto laikasPraejo = std::chrono::duration_cast<std::chrono::seconds>(dabartinisLaikas - pradziosLaikas).count();
+                    if (laikasPraejo >= maxKasimoLaikas) {
+                        break;  // Nutraukiame, jei pasiekėme laiko limitą
+                    }
+                }
+            });
         }
-    }
-    return false;  // Nei vienas kandidatas nebuvo iškastas
+
+        // Laukiame, kol visos gijos baigs darbą
+        for (auto& t : threads) {
+            t.join();
+        }
+
+        // Tikriname, ar kuris nors blokas buvo sėkmingai iškastas
+        return blokasSurastas;
 }
 void atnaujintiBalansus(const vector<Transakcija>& transakcijos, vector<Vartotojas>& vartotojai) {
     for (const auto& transakcija : transakcijos) {
@@ -482,12 +526,48 @@ void atnaujintiBalansus(const vector<Transakcija>& transakcijos, vector<Vartotoj
         auto gavejas = std::find_if(vartotojai.begin(), vartotojai.end(), [&](const Vartotojas& v) {
             return v.getpKey() == transakcija.getGavejas();
         });
+        // ar siuntejas ir gavejas rasti
         if (siuntejas != vartotojai.end() && gavejas != vartotojai.end()) {
-            siuntejas->atnaujintiBalansa(-transakcija.getSuma());
-            gavejas->atnaujintiBalansa(transakcija.getSuma());
+            int sumaSiusti = transakcija.getSuma();
+            // jei rasti, tikrinama ar siuntejo utxo suma (balansas) yra pakankamas
+            if (siuntejas->getBalance() < transakcija.getSuma()) {
+                std::cout << "Nepakanka lėšų siuntėjo balanse. Transakcija atmesta." << std::endl;
+                continue;
+            }
+            vector<UTXO> pasirinktiUTXO;
+            int surinktaSuma = 0;
+            
+            for (const auto& utxo : siuntejas->GetUtxos()) {
+                pasirinktiUTXO.push_back(utxo);
+                surinktaSuma += utxo.suma_;
+                if (surinktaSuma >= transakcija.getSuma()) {
+                    break;
+                }
+            }
+            
+            // Pašaliname pasirinktas UTXO iš siuntėjo
+            for (const auto& utxo : pasirinktiUTXO) {
+                siuntejas->pasalintiUTXO(utxo.utxoID);
+            }
+            
+            // Sukuriame naują UTXO gavėjui su pervedama suma
+            UTXO naujasUTXO(transakcija.getSuma(), gavejas->getpKey());
+            gavejas->pridetiUTXO(naujasUTXO);
+            
+            // Jei yra grąža, sukuriame naują UTXO siuntėjui
+            int grazinamojiSuma = surinktaSuma - transakcija.getSuma();
+            if (grazinamojiSuma > 0) {
+                UTXO grazosUTXO(grazinamojiSuma, siuntejas->getpKey());
+                siuntejas->pridetiUTXO(grazosUTXO);
+            }
         }
     }
 }
+        
+            
+//            siuntejas->atnaujintiBalansa(-transakcija.getSuma());
+//            gavejas->atnaujintiBalansa(transakcija.getSuma());
+        
 void vykdytiKasima(vector<Blokas>& blockchain, vector<Transakcija>& transakcijos, vector<Vartotojas>& vartotojai, int maxKasimoLaikas, int maxBandymuSkaicius) {
     int minerioID=1;
     while (!transakcijos.empty()) {
