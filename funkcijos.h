@@ -11,17 +11,31 @@
 #include "biblioteka.h"
 string hashFunkcija(string input);
 class UTXO{
+public:
+//    string transakcijosID;
+    string utxoID;
+    int indeksas;
+    string vartotojoPK;
+    int suma_;
+    UTXO(){}
+    UTXO(int suma, string useris):
+    suma_(suma), vartotojoPK(useris){
+        utxoID = hashFunkcija(vartotojoPK+to_string(suma_));
+    }
     
 };
 class Vartotojas{
 private:
     string vardas_;
     string viesRaktas_;
-    int valiutosBal_;
+//    int valiutosBal_;
+    vector <UTXO> utxos_;
 public:
     Vartotojas() = default;
-    Vartotojas(string vardas, string publicKey, double balansas):
-    vardas_(vardas), viesRaktas_(publicKey), valiutosBal_(balansas) {}
+//    Vartotojas(string vardas, string publicKey, double balansas):
+//    vardas_(vardas), viesRaktas_(publicKey), valiutosBal_(balansas) {}
+    Vartotojas(string vardas, string publicKey):
+    vardas_(vardas), viesRaktas_(publicKey) {}
     
     void setVar(string vard){
         vardas_ = vard;
@@ -29,20 +43,45 @@ public:
     void setpKey(string raktas){
         viesRaktas_ = raktas;
     }
-    void setBal(int balansas){
-        valiutosBal_ = balansas;
+    void setUTXO(vector<UTXO> ut)
+    {
+        utxos_ = ut;
     }
-    void atnaujintiBalansa(int suma){
-        valiutosBal_ += suma;
+//    void setBal(int balansas){
+//        valiutosBal_ = balansas;
+//    }
+//    void atnaujintiBalansa(int suma){
+//        valiutosBal_ += suma;
+//    }
+    void pridetiUTXO(const UTXO& utxo)
+    {
+        utxos_.push_back(utxo);
+    }
+    void pasalintiUTXO(const string& utxoID) {
+        auto it = std::find_if(utxos_.begin(), utxos_.end(), [&utxoID](const UTXO& ut) {
+            return ut.utxoID == utxoID;
+        });
+        if (it != utxos_.end()) {
+            utxos_.erase(it);
+        }
     }
     
     string getVar() const { return vardas_;}
     string getpKey() const { return viesRaktas_;}
-    int getBalance() const{ return valiutosBal_;}
+    int getBalance() const{
+        int balansas = 0;
+        for(const auto& utxo: utxos_)
+        {
+            balansas+= utxo.suma_;
+        }
+        return balansas;
+    }
+    const vector<UTXO>& GetUtxos() const { return utxos_; }
     void spausdintiUseri() const{
         cout << "Vardas: " << vardas_ << endl;
         cout << "Viesasis raktas: " << viesRaktas_ << endl;
-        cout << "Valiutos balansas: " << valiutosBal_ << endl;
+        cout << "Valiutos balansas: " << getBalance()<< endl;
+        cout << "UTXO:" << endl;
     }
     
 };
@@ -87,18 +126,20 @@ private:
     vector<Transakcija> transakcijos_;
     
     bool isMined = false;
+    string minerioVardas_;
     
 public:
     Blokas(){};
-    Blokas(string prev_blokas,vector<Transakcija> transakcijos, int difficulty_target, string versija)
+    Blokas(string prev_blokas,vector<Transakcija> transakcijos, int difficulty_target, string versija, string minerioVardas)
     : prev_bloko_hash_(prev_blokas), transakcijos_(transakcijos), difficulty_target_(difficulty_target),
-    versija_(versija){
+    versija_(versija), minerioVardas_(minerioVardas){
         laikas_ = time(nullptr);
         merkle_root_hash_ = skaiciuotiMerkleRoot();
         nonce_ = 0;
-        bloko_hash_ = mineBlock();
+//        bloko_hash_ = mineBlock();
         
     }
+    string getMinerioVardas() const {return minerioVardas_;}
     string getPrBlockHash() const{
         return prev_bloko_hash_;
     }
@@ -176,15 +217,14 @@ public:
         }
         return hashai[0];
     }
-    string mineBlock() {
+    void mineBlock() {
         string target(difficulty_target_, '0');
-        string hash;
+//        string hash;
         do {
             nonce_++;
-            hash = hashFunkcija(prev_bloko_hash_+merkle_root_hash_+to_string(laikas_)+to_string(nonce_));
-        }while (hash.substr(0, difficulty_target_)!=target);
+            bloko_hash_ = hashFunkcija(prev_bloko_hash_+merkle_root_hash_+to_string(laikas_)+to_string(nonce_));
+        }while (bloko_hash_.substr(0, difficulty_target_)!=target);
         isMined = true;
-        return hash;
     }
     void printBlock() {
         cout << "Blokas:" << endl;
@@ -195,6 +235,7 @@ public:
         cout << "Nonce: " << nonce_ << endl;
         cout << "Bloko hash: " << bloko_hash_ << endl;
         cout << "Transakcijų kiekis: " << transakcijos_.size() << endl;
+        cout << "Bloka iskase: " << minerioVardas_ << endl;
 //        for (const auto& tx : transakcijos_) {
 //            cout << "Transakcija ID: " << tx.getId() << " Siuntėjas: " << tx.getSiuntejas()
 //                 << " Gavėjas: " << tx.getGavejas() << " Suma: " << tx.getSuma() << endl;
@@ -272,7 +313,11 @@ unsigned long long int leftRotate (unsigned long long int reiksme, unsigned long
 string druskosGeneravimas(int ilgis);
 string hashFunkcijaSuDruska(string input);
 vector<Vartotojas> generuotiVartotojus(int n);
-int randomSuma ();
+int randomSuma(const int min, const int max);
 vector<Transakcija> generuotiTransakcijas(vector<Vartotojas>& vartotojai, int transakcijuSk);
 bool transakcijosTikrinimas(const Transakcija& tx, const std::vector<Vartotojas>& vartotojai);
+bool kandidatoKasimas(Blokas& kandidatas, int maxBandymuSkaicius, int maxKasimoLaikas);
+bool kasimasSuKandidatais(vector<Blokas>& kandidatai, int maxBandymuSkaicius, int maxKasimoLaikas);
+void atnaujintiBalansus(const vector<Transakcija>& transakcijos, vector<Vartotojas>& vartotojai);
+void vykdytiKasima(vector<Blokas>& blockchain, vector<Transakcija>& transakcijos, vector<Vartotojas>& vartotojai, int maxKasimoLaikas, int maxBandymuSkaicius);
 #endif /* funkcijos_h */
