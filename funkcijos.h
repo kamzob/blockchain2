@@ -226,6 +226,32 @@ public:
         }while (bloko_hash_.substr(0, difficulty_target_)!=target);
         isMined = true;
     }
+    void kastiBlokaSuLimitais(int maxKasimoLaikas, int maxBandymuSkaicius)
+    {
+        string target(difficulty_target_, '0');
+        auto pradziosLaikas = std::chrono::steady_clock::now();
+        while(nonce_<maxBandymuSkaicius)
+        {
+            nonce_++;
+            bloko_hash_ = hashFunkcija(prev_bloko_hash_ + merkle_root_hash_ + to_string(laikas_) + to_string(nonce_));
+            if (bloko_hash_.substr(0, difficulty_target_) == target) 
+            {
+                auto kadaIskastas = std::chrono::steady_clock::now();
+                
+                isMined = true;
+                std::cout << "Blokas sėkmingai iškastas su nonce: " << nonce_ << " per " << std::chrono::duration_cast<std::chrono::milliseconds>(kadaIskastas - pradziosLaikas).count() << " ms" << std::endl;
+                return;
+            }
+            
+            auto dabartinisLaikas = std::chrono::steady_clock::now();
+            auto laikasPraejo = std::chrono::duration_cast<std::chrono::seconds>(dabartinisLaikas - pradziosLaikas).count();
+            if (laikasPraejo >= maxKasimoLaikas) {
+            std::cout << "Kasimo laiko limitas viršytas. Blokas neiškastas." << std::endl;
+                return;
+            }
+        }
+        cout << "Pasiektas bandymų limitas. Blokas neiškastas." << std::endl;
+    }
     void printBlock() {
         cout << "Blokas:" << endl;
         cout << "Versija: " << versija_ << endl;
