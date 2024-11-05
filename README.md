@@ -182,6 +182,8 @@ Privatūs kintamieji: Visų trijų klasių – `Vartotojas`, `Transakcija` ir `B
 Vieši getter ir setter metodai: Kiekviena klasė suteikia prieigą prie duomenų naudodama aiškiai apibrėžtus getter ir setter metodus, kurie kontroliuoja prieigą prie privačių kintamųjų ir leidžia užtikrinti, kad duomenys bus keičiami tik saugiai ir tiksliai.
 
 2. Klasėse naudojami konstruktoriai, RAII užtikrina kad resursai bus atlaisvinti, kai jų nebereikės.
+## v0.2
+Pridėtas UTXO modelis, transakcijų verifikavimas prieš dedant į bloką bei atliekant transakcijas, pridėta nauja kasimo funkcija su sąlygomis (bandymų skaičiumi ir laiku).
 
 
 
