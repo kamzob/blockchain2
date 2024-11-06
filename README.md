@@ -181,16 +181,144 @@ Sukūrus blokų grandinę, Vartotojas gaus pranešimą, kad sukurta blokų grand
 Privatūs kintamieji: Visų trijų klasių – `Vartotojas`, `Transakcija` ir `Blokas` – duomenų laukai yra apsaugoti kaip privatūs, kad jų nebūtų galima tiesiogiai keisti iš išorės. Tai apsaugo kritinę informaciją (pvz., vartotojų balansus, bloko hash) nuo netyčinio pakeitimo.
 Vieši getter ir setter metodai: Kiekviena klasė suteikia prieigą prie duomenų naudodama aiškiai apibrėžtus getter ir setter metodus, kurie kontroliuoja prieigą prie privačių kintamųjų ir leidžia užtikrinti, kad duomenys bus keičiami tik saugiai ir tiksliai.
 
+
 2. Klasėse naudojami konstruktoriai, RAII užtikrina kad resursai bus atlaisvinti, kai jų nebereikės.
 ## v0.2
 Pridėtas UTXO modelis, transakcijų verifikavimas prieš dedant į bloką bei atliekant transakcijas, pridėta nauja kasimo funkcija su sąlygomis (bandymų skaičiumi ir laiku).
+### Vartotoju ir transakcijų generavimas
+Paleidus programą bus rodoma taip: 
+
+<img width="544" alt="Screenshot 2024-11-06 at 15 38 22" src="https://github.com/user-attachments/assets/8f0e239e-f34d-4011-bb60-e091e40ab1ea">
+
+Bus automatiškai sugeneruojama 1000 vartotojų su vardu (user1, user2...), viešuoju raktu hashFunkcija(user_) bei UTXOs: kiekvienam vartotojui atsitiktinai sugeneruojama nuo 1 iki 10 UTXOs ir kiekvieno UTXOs suma gali būti nuo 100 iki 10000 (tam naudojama funkcija randomSuma). Jie saugomi Vartotojas klasės vartotojai vektoriai.
+Toliau seka transakciju generavimas, kur sugeneruojama 10000 transakcijų su gavėju (publicKey), siuntėju (publicKey) ir suma. Sugeneruotos transakcijos saugomos Transakcija klasės transakcijuMemPool vektoriuje.
+
+### Transakcijų įtraukimas į bloką
+Visų pirma paimama 100 atsitiktinių transakcijų iš transakcijų MemPool. Kadangi transakcijos parenkamos atsitiktinai, tai gali būti, kad siuntėjas negalės jų vykdyti. Tam tikslui sukurta funkcija validIBloka, kurioje naudojamas <unordered_map> laikiniBalansai. Ten vykdomas transakcijų tikrinimas, ar pakankamas balansas ir ar sutampa transakcijosID su gavėjo, siuntėjo ir sumos maišos rezultatu. Kadangi transakcijos yra įvykdomos tik iškasus bloką, todėl čia svarbų vaidmenį žaidžia laikiniBalansai, nes jie imituoja vartotojo balanso pasikeitimą priklausomai nuo transakcijų, bet *TIKRIEJI balansai ir UTXOs NĖRA NAUDOJAMI.* Kai praeinama 100 transakcijų, funkcija grąžina tinkamas transakcijas ir jos įtraukiamos į bloką.
+
+### Bloko sandara
+Klasėje blokas yra konstuktoius: 
+```
+    Blokas(string prev_blokas,vector<Transakcija> transakcijos, int difficulty_target, string versija, string minerioVardas)
+    : prev_bloko_hash_(prev_blokas), transakcijos_(transakcijos), difficulty_target_(difficulty_target),
+    versija_(versija), minerioVardas_(minerioVardas){
+        laikas_ = time(nullptr);
+        merkle_root_hash_ = skaiciuotiMerkleRoot();
+        nonce_ = 0;
+        
+    }
+```
+Sukuriant bloką, t.y. įtraukiant transakcijas, bloko header'is pasipildo šiais elementais: prev_bloko_hash, timestamp, versija, difficulty target, nonce (kol blokas nekasamas jis 0) ir merkel_root_hash.
+### Kaip apskaičiuojamas merkel root?
+1. Pradinis maišų generavimas:
+Surenkame kiekvieno transakcijos_ objekto ID (jau esamą maišos reikšmę) į hashai vektorių.
+2. Iteracijos per maišų sąrašą:
+Kol hashai yra didesnio nei 1 dydžio, iteruojame, kad sujungtume po dvi maišų reikšmes ir sugeneruotume jų jungtinę maišą.
+Jei hashai dydis yra nelyginis, paskutinė maiša dubliuojama, kad kiekvieną kartą būtų sujungiamos poros (tai padeda išlaikyti pilną dvejetainį Merkle medžio struktūros balansą).
+3. Rekursyvinis maišų jungimas:
+Kiekvienos iteracijos metu maišų porų sujungimai vėl saugomi naujiHashai vektoriuje, kuris atnaujina hashai ir kartojasi iki tol, kol lieka tik viena maišų reikšmė.
+4. Rezultatas:
+Paskutinis likęs maišas vektoriuje hashai[0] yra Merkle šaknis, kurią funkcija grąžina.
+```
+   string skaiciuotiMerkleRoot()
+    {
+        if(transakcijos_.empty())
+        {
+            return "";
+        }
+        vector<string> hashai;
+        for(const auto& trans: transakcijos_)
+        {
+            hashai.push_back(trans.getId());
+        }
+        while(hashai.size()>1)
+        {
+            if(hashai.size() % 2 != 0){
+                hashai.push_back(hashai.back());
+            }
+            vector<string> naujiHashai;
+            for(size_t i = 0; i < hashai.size(); i+=2)
+            {
+                string komb = hashai[i] + hashai[i+1];
+                naujiHashai.push_back(hashFunkcija(komb));
+            }
+            hashai = naujiHashai;
+        }
+        return hashai[0];
+    }
+```
+
+### Blokų kasimas
+Blokas kasamas tol, kol gaunamas bloko_hash_ atitinkantis difficulty_target. Kasimas paremtas nonce_ didinimu, kai randamas toks nonce, kad `bloko_hash_ = hashFunkcija(prev_bloko_hash_+merkle_root_hash_+to_string(laikas_)+to_string(nonce_))` atitiktų diffTrgt.
+
+### Kas vyksta iškasus bloką? 
+1. Panaudotos transakcijos (esančios iškastame bloke) ištrinamos iš transakcijosMemPool.
+2. Transakcijos įvykdomos, tam naudojama funkcija `atnaujintiBalansus`, kurioje dar kartą patikrinamas vartotojo bendras balansas. Jei siuntėjas turi pakankamą balansą, renkami atskiri UTXO įrašai, kad būtų pasiekta transakcijos suma. 
+3. Blokas pridedamas į blokų grandinę.
+
+### UTXO modelio naudojimas (1 papildoma užduotis)
+1. Sukurta klasė UTXO:
+```
+class UTXO{
+public:
+    string utxoID;
+    string vartotojoPK;
+    int suma_;
+    UTXO(){}
+    UTXO(int suma, string useris):
+    suma_(suma), vartotojoPK(useris){
+        utxoID = hashFunkcija(vartotojoPK+to_string(suma_));
+    }
+    
+};
+```
+Vartotjas klasei vietoje balansas_ naudojimo, naudojame vektorių su turimais UTXOs:
+```
+class Vartotojas{
+private:
+    string vardas_;
+    string viesRaktas_;
+    vector <UTXO> utxos_;
+public:
+```
+2. Vartotojų generavimo metu kiekvienas vartotojas gauna nuo 1 iki 10 UTXOs, kurių kiekviena vertė gali būti nuo 100 iki 100000:
+
+<img width="561" alt="Screenshot 2024-11-06 at 16 44 01" src="https://github.com/user-attachments/assets/09700191-044d-4e23-8148-1775c7cbcba1">
 
 
-### Lygiagretus 5 blokų kandidatų kasimas
-<img width="814" alt="Screenshot 2024-11-06 at 03 18 56" src="https://github.com/user-attachments/assets/1e613d64-05de-4cf6-b3ce-a514a7971223">
+3. Transakicjų vykdymas realizuotas atnaujintiBalansus funkcijoje:
+> UTXO pasirinkimas:
+Jei siuntėjas turi pakankamą balansą, renkami atskiri UTXO įrašai, kad būtų pasiekta transakcijos suma.
+surinktaSuma yra naudojama tikrinant, ar suma jau pakankama. Jei taip, siuntėjo UTXO pasirinkimas baigiamas.
+> UTXO pašalinimas:
+Pasirinkti UTXO yra pašalinami iš siuntėjo UTXO sąrašo. Tokiu būdu siuntėjas „išleidžia“ tuos UTXO ir jie nebebus naudojami ateities transakcijose.
+> Gavėjo UTXO atnaujinimas:
+Sukuriamas naujas UTXO įrašas su pervedama suma ir pridedamas prie gavėjo UTXO sąrašo. Taip užtikrinama, kad gavėjas gaus reikiamą balansą.
+> Grąža:
+Jei surinkta suma viršija transakcijos sumą (yra „grąža“), likusi suma sukuriama kaip naujas UTXO ir grąžinama atgal siuntėjui.
+4. Vartotojai ir jų UTXOs po visko:
+<img width="674" alt="Screenshot 2024-11-06 at 16 44 26" src="https://github.com/user-attachments/assets/58370765-ff7b-4ca9-a18b-d56625077cb7">
 
-<img width="807" alt="Screenshot 2024-11-06 at 03 19 28" src="https://github.com/user-attachments/assets/97da9dd7-50ea-4a59-bcd1-4b3f51e41888">
 
-<img width="800" alt="Screenshot 2024-11-06 at 03 20 03" src="https://github.com/user-attachments/assets/ef56f979-1a45-44cb-a393-260e128e26d3">
+
+
+
+### Lygiagretus 5 blokų kandidatų kasimas (2 papildoma užduotis)
+1. Sudaromi 5 potencialūs blokai kandidatai, į juos įtraukiamos transakcijos (blokuose transakcijos gali kartotis)
+2. Kiekvienai gijai priskiriamas blokas - tam naudojami `vector<std::thread> gijos`.
+3. Vykdomas blokų kasimas lygiagrečiai: 5 gijos vienu metu kasa 5 blokus, t.y. 1 gija kasa viena bloką.
+4. Sukurta nauja kasimo funkcija su laiko ribojimu ir bandymų ribojimu (nonce_<=maxBandymuSk)
+5. Pirmasis iškastas blokas pridedamas į blokų grandinę (
+6. Jei nei vienas iš 5 blokų neiškastas, tada didinam bandymų skaičių ir laiką
+
+<img width="886" alt="Screenshot 2024-11-06 at 17 10 41" src="https://github.com/user-attachments/assets/e4adce97-2ae8-479c-998e-ba9e6f72a759">
+
+<img width="893" alt="Screenshot 2024-11-06 at 17 13 12" src="https://github.com/user-attachments/assets/3013eaed-5cc7-49a0-bdf6-72d9f5bb5cf2">
+
+Taigi, kadanagi kiekvienas blokas yra sudarytas iš transakcijų kurios gali kartotis ir blokai kasami lygiagrečiai, tai visų jų previous_bloko hash yra genesis bloko hash. Dėl šios priežasties į blokų grandinę įdedamas tik pats pirmasis iškastas blokas kandidatas. 
+
+<img width="345" alt="Screenshot 2024-11-06 at 17 17 27" src="https://github.com/user-attachments/assets/3cb281cc-5b3f-4e40-b0b9-b33d88470e8c">
+<img width="873" alt="Screenshot 2024-11-06 at 17 17 50" src="https://github.com/user-attachments/assets/98d75641-35a2-4bef-b0b0-34c89e71631e">
+
 
 
