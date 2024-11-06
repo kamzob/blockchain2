@@ -11,230 +11,61 @@ int main()
 {
     int vartSk = 1000;
     int transSk = 10000;
-    int difTrgt = 4;
+    int difTrgt = 3;
     int maxKasimoLaikas = 5;
     int maxBandymuSk = 100000;
     srand( static_cast<unsigned int>(time(nullptr)));
+    cout << "Vykdomas vartotoju generavimas..." << endl;
    vector<Vartotojas> vartotojai = generuotiVartotojus(vartSk);
+    if(!vartotojai.empty())
+    {
+        cout << "Vartotoju generavimas sekmingas! Sugeneruota: " << vartotojai.size() << endl;
+    }
+    cout << "Vykdomas transakciju generavimas..." << endl;
     vector<Transakcija> transakcijosMemPool = generuotiTransakcijas(vartotojai, transSk);
-    cout << "Sugeneruota " << transakcijosMemPool.size() << endl;
+    if(!transakcijosMemPool.empty())
+    {
+        cout << "Vartotoju generavimas sekmingas! Sugeneruota: " << transakcijosMemPool.size() << endl;
+    }
+    
+
     vector<Transakcija> tuscia;
     vector<Blokas> blockchain;
     Blokas genesis("0000000000000000000000000000000000000000000000000000000000000000", tuscia, difTrgt, "1", "Nezinomas");
+    cout << "Sukurtas genesis blokas: " << endl;
     genesis.mineBlock();
     genesis.printBlock();
     blockchain.push_back(genesis);
-    vykdytiKasima(blockchain, transakcijosMemPool, vartotojai, maxKasimoLaikas, maxBandymuSk);
     
     
-    
-    
-    
-    
-//    blockchain[0].printBlock();
-//    
-//    while (!transakcijosMemPool.empty()) {
-//        int ctr = 1;
-//        std::vector<Blokas> blokaiKandidatai;
-//
-//        // 4 blokų kandidatų kūrimas
-//        for (int i = 0; i < 4; i++) {
-//            std::vector<Transakcija> naujoBlokoTransakcijos;
-//            if (transakcijosMemPool.size() >= 100) {
-//                std::sample(transakcijosMemPool.begin(), transakcijosMemPool.end(), std::back_inserter(naujoBlokoTransakcijos), 100, std::mt19937{std::random_device{}()});
-//            } else {
-//                naujoBlokoTransakcijos = transakcijosMemPool;
-//            }
-//
-//            // Tinkamų transakcijų surinkimas
-//            std::vector<Transakcija> validTransakcijos;
-//            for (const auto& transakcija : naujoBlokoTransakcijos) {
-//                if (transakcijosTikrinimas(transakcija, vartotojai)) {
-//                    validTransakcijos.push_back(transakcija);
-//                }
-//            }
-//
-//            if (!validTransakcijos.empty()) {
-//                Blokas kandidatas(blockchain.back().getBlokoHash(), validTransakcijos, difTrgt, "1.0");
-//                blokaiKandidatai.push_back(kandidatas);
-//            }
-//        }
-//
-//        Blokas iškastasBlokas;
-//        bool blokasIškastas = false;
-////        omp_set_num_threads(4);
-//
-//        // Kiekvieno bloko kandidato kasimas lygiagrečiai
-////        #pragma omp parallel for
-//        for (int i = 0; i < blokaiKandidatai.size(); i++) {
-//            blokaiKandidatai[i].mineBlock();
-////            #pragma omp critical
-//            {
-//                if (blokaiKandidatai[i].getIsMined() && !blokasIškastas) {
-//                    iškastasBlokas = blokaiKandidatai[i];
-//                    blokasIškastas = true;
-//                }
-//            }
-//        }
-//
-//        if (blokasIškastas) {
-//            // Patvirtintos transakcijos šalinamos iš mempool
-//            for (const auto& transakcija : iškastasBlokas.getTransact()) {
-//                auto it = std::find_if(transakcijosMemPool.begin(), transakcijosMemPool.end(), [&](const Transakcija& t) {
-//                    return t.getId() == transakcija.getId();
-//                });
-//                if (it != transakcijosMemPool.end()) {
-//                    transakcijosMemPool.erase(it);
-//                }
-//            }
-//
-//            // Balanso atnaujinimas
-//            atnaujintiBalansus(iškastasBlokas.getTransact(), vartotojai);
-//            iškastasBlokas.printBlock();
-//            blockchain.push_back(iškastasBlokas);
-//            ctr++;
-//        } else {
-//            std::cout << "Nepavyko iškasti bloko. Pailginamas kasimo laikas arba bandymų skaičius." << std::endl;
-//        }
-//    }
+    int pasirinkimas;
+    cout << "Pasirinkite, kuri veiksma norite atlikti:" << endl;
+    cout << "1 - Kasti blokus naudojant visas transakcijas" << endl;
+    cout << "2 - Kasti lygiagreciai 5 blokus kandidatus" << endl;
+    cin >> pasirinkimas;
 
-    
-    
-    
-    // Kol yra neapdorotų transakcijų mempoole
-//    while (!transakcijosMemPool.empty()) {
-//        // Kandidatinių blokų sukūrimas (5 blokai)
-//        vector<Blokas> blokaiKandidatai;
-//        for (int i = 0; i < 5; i++) {
-//            vector<Transakcija> naujoBlokoTransakcijos;
-//            if (transakcijosMemPool.size() >= 100) {
-//                std::sample(transakcijosMemPool.begin(), transakcijosMemPool.end(), std::back_inserter(naujoBlokoTransakcijos), 100, std::mt19937{std::random_device{}()});
-//            } else {
-//                naujoBlokoTransakcijos = transakcijosMemPool;
-//            }
-//
-//            // Filtruojame tinkamas transakcijas
-//            vector<Transakcija> validTransakcijos;
-//            for (const auto& transakcija : naujoBlokoTransakcijos) {
-//                if (transakcijosTikrinimas(transakcija, vartotojai)) {
-//                    validTransakcijos.push_back(transakcija);
-//                }
-//            }
-//
-//            if (!validTransakcijos.empty()) {
-//                Blokas kandidatas(blockchain.back().getBlokoHash(), validTransakcijos, difTrgt, "1.0");
-//                blokaiKandidatai.push_back(kandidatas);
-//            }
-//        }
-//
-//        bool blokasIškastas = false;
-//        for (int pailginti = 0; pailginti < 3 && !blokasIškastas; pailginti++) {
-//            int bandymuSkaicius = maxBandymuSk * (pailginti + 1);
-//            int kasimoLaikas = maxKasimoLaikas * (pailginti + 1);
-//
-//            // Atsitiktinai parenkame kandidatą ir bandom "kasti"
-//            for (auto& kandidatas : blokaiKandidatai) {
-//                if (kandidatoKasimas(kandidatas, bandymuSkaicius, kasimoLaikas)) {
-//                    blockchain.push_back(kandidatas);
-//                    for (const auto& transakcija : kandidatas.getTransact()) {
-//                        auto it = std::find_if(transakcijosMemPool.begin(), transakcijosMemPool.end(), [&](const Transakcija& t) {
-//                            return t.getId() == transakcija.getId();
-//                        });
-//                        if (it != transakcijosMemPool.end()) {
-//                            transakcijosMemPool.erase(it);
-//                        }
-//                    }
-//
-//                    atnaujintiBalansus(kandidatas.getTransact(), vartotojai);
-//                    kandidatas.printBlock();
-//                    blokasIškastas = true;
-//                    break;
-//                }
-//            }
-//        }
-//
-//        if (!blokasIškastas) {
-//            cout << "Nepavyko iškasti bloko. Pailginamas kasimo laikas arba bandymų skaičius." << endl;
-//        }
-//    }
+    if (pasirinkimas == 1) {
+        kolYraTransakciju(blockchain, transakcijosMemPool, vartotojai, difTrgt);
+    } else if (pasirinkimas == 2) {
+        vykdytiKasima(blockchain, transakcijosMemPool, vartotojai, maxKasimoLaikas, maxBandymuSk);
+    } else {
+        cout << "Neteisingas pasirinkimas. Baigiama programa." << endl;
+        return 0;
+    }
 
     cout << "Sukurta blokų grandinė iš " << blockchain.size() << " blokų." << endl;
-//    // Kol yra neapdorotų transakcijų mempoole
-//    while (!transakcijosMemPool.empty()) {
-//        
-//        // 1. Atsitiktinai pasirinkti 100 transakcijų
-//        std::vector<Transakcija> naujoBlokoTransakcijos;
-//        if (transakcijosMemPool.size() >= 100) {
-//            std::sample(transakcijosMemPool.begin(), transakcijosMemPool.end(), std::back_inserter(naujoBlokoTransakcijos), 100, std::mt19937{std::random_device{}()});
-//        } else {
-//            naujoBlokoTransakcijos = transakcijosMemPool; // jei likę mažiau nei 100
-//        }
-//        
-//        // Filtruojame tinkamas transakcijas
-//        std::vector<Transakcija> validTransakcijos;
-//        for (const auto& transakcija : naujoBlokoTransakcijos) {
-//            if (transakcijosTikrinimas(transakcija, vartotojai)) {
-//                validTransakcijos.push_back(transakcija); // Įtraukiame tik patvirtintas transakcijas
-//            }
-//            else
-//            {
-//                auto it = std::find_if(transakcijosMemPool.begin(), transakcijosMemPool.end(), [&](const Transakcija& t) {
-//                    return t.getId() == transakcija.getId();
-//                });
-//                if (it != transakcijosMemPool.end()) {
-//                    transakcijosMemPool.erase(it);
-//                }
-//                
-//            }
-//        }
-//
-//        if (validTransakcijos.empty()) {
-//            std::cout << "Nepavyko rasti tinkamų transakcijų šiame cikle." << std::endl;
-//            break; // Išėjimas iš ciklo, jei nėra daugiau galiojančių transakcijų
-//        }
-//
-//        // 2. Sukurti naują bloką su 100 transakcijų
-//        Blokas naujasBlokas(blockchain.back().getBlokoHash(), validTransakcijos, difTrgt, "1.0");
-//
-//        // 3. Iškasti naują bloką naudojant PoW
-//        naujasBlokas.mineBlock();
-//
-//        // 4. Jei sėkmingai rastas tinkamas hash:
-//        // - Ištrinti transakcijas iš mempool
-//        for (const auto& transakcija : validTransakcijos) {
-//            auto it = std::find_if(transakcijosMemPool.begin(), transakcijosMemPool.end(), [&](const Transakcija& t) {
-//                return t.getId() == transakcija.getId();
-//            });
-//            if (it != transakcijosMemPool.end()) {
-//                transakcijosMemPool.erase(it);
-//            }
-//        }
-//
-//        // - Atnaujinti vartotojų balansus
-//        for (const auto& transakcija : validTransakcijos) {
-//            auto siuntejas = std::find_if(vartotojai.begin(), vartotojai.end(), [&](const Vartotojas& v) {
-//                return v.getpKey() == transakcija.getSiuntejas();
-//            });
-//            auto gavejas = std::find_if(vartotojai.begin(), vartotojai.end(), [&](const Vartotojas& v) {
-//                return v.getpKey() == transakcija.getGavejas();
-//            });
-//            if (siuntejas != vartotojai.end() && gavejas != vartotojai.end()) {
-//                siuntejas->atnaujintiBalansa(-transakcija.getSuma());
-//                gavejas->atnaujintiBalansa(transakcija.getSuma());
-//            }
-//        }
-//
-//        // - Pridėti bloką prie blokų grandinės
-//        blockchain.push_back(naujasBlokas);
-//
-//        // Spausdina bloką (patikrinimui)
-//        naujasBlokas.printBlock();
-//    }
+
     
     ofstream fr("vartojaipovisko.txt");
     for(const auto& vart: vartotojai)
     {
-        fr << vart.getVar() << " " << vart.getpKey() << " " << vart.getBalance() << endl;
+        fr << vart.getVar() << "\n" << vart.getpKey() << "\n" << "Balansas: " << vart.getBalance() << endl;
+        fr << "UTXOs: \n";
+        for (const auto& ut: vart.GetUtxos())
+        {
+            fr << "ID: " << ut.utxoID << " Suma: " << ut.suma_ << endl;
+            
+        }
     }
     
     cout << "Sukurta bloku grandine is " << blockchain.size() << " bloku" << endl;
@@ -467,48 +298,6 @@ vector<Transakcija> validIBloka(const vector<Transakcija>& atsitiktinesTransakci
     return galiojanciosTransakcijos;
 }
 
-
-
-//bool transakcijosTikrinimas(const Transakcija& tx, const std::vector<Vartotojas>& vartotojai) {
-//    auto siuntejas = std::find_if(vartotojai.begin(), vartotojai.end(), [&](const Vartotojas& v) {
-//        return v.getpKey() == tx.getSiuntejas();
-//    });
-//
-//    // Balanso tikrinimas
-//    if (siuntejas == vartotojai.end() || siuntejas->getBalance() < tx.getSuma()) {
-////        std::cout << "Transakcija atmesta: nepakankamas siuntėjo balansas." << std::endl;
-//        return false;
-//    }
-//
-//    // Maišos validacija
-//    string calculatedHash = hashFunkcija(tx.getSiuntejas() + tx.getGavejas() + std::to_string(tx.getSuma()));
-////    if (calculatedHash != tx.getId()) {
-//////        std::cout << "Transakcija atmesta: transakcijos ID nesutampa su apskaičiuota maišos reikšme." << std::endl;
-////        return false;
-////    }
-//
-//    return calculatedHash==tx.getId();  // Transakcija yra tinkama
-//}
-
-bool kandidatoKasimas(Blokas& kandidatas, int maxBandymuSkaicius, int maxKasimoLaikas) {
-    auto pradziosLaikas = std::chrono::steady_clock::now();
-    int bandymai = 0;
-
-    while (bandymai < maxBandymuSkaicius) {
-        kandidatas.mineBlock();
-        if (kandidatas.getIsMined()) {
-            return true;
-        }
-        bandymai++;
-
-        auto dabartinisLaikas = std::chrono::steady_clock::now();
-        auto laikasPraejo =std::chrono::duration_cast<std::chrono::seconds>(dabartinisLaikas - pradziosLaikas).count();
-        if (laikasPraejo >= maxKasimoLaikas) {
-            break;
-        }
-    }
-    return false;
-}
 bool kasimasSuKandidatais(vector<Blokas>& kandidatai, int maxBandymuSkaicius, int maxKasimoLaikas) {
     std::atomic<bool> blokasSurastas(false);  // Kai vienas kandidatas sėkmingai išminavo bloką, nustatomas į true
         std::vector<std::thread> threads;
@@ -557,7 +346,6 @@ void atnaujintiBalansus(const vector<Transakcija>& transakcijos, vector<Vartotoj
         });
         // ar siuntejas ir gavejas rasti
         if (siuntejas != vartotojai.end() && gavejas != vartotojai.end()) {
-            int sumaSiusti = transakcija.getSuma();
             // jei rasti, tikrinama ar siuntejo utxo suma (balansas) yra pakankamas
             if (siuntejas->getBalance() < transakcija.getSuma()) {
                 std::cout << "Nepakanka lėšų siuntėjo balanse. Transakcija atmesta." << std::endl;
@@ -658,7 +446,7 @@ void vykdytiKasima(vector<Blokas>& blockchain, vector<Transakcija>& transakcijos
     }
 }
     
-    
+    // paprastas kasimas 5 bloku kandidatu
     void vykdytiKasimaa(vector<Blokas>& blockchain, vector<Transakcija>& transakcijos, vector<Vartotojas>& vartotojai, int maxKasimoLaikas, int maxBandymuSkaicius) {
         int minerioID = 1;
         vector<Blokas> kandidatai;
@@ -693,42 +481,6 @@ void vykdytiKasima(vector<Blokas>& blockchain, vector<Transakcija>& transakcijos
         }
     }
 
-
-void vykdytiKasimas(vector<Blokas>& blockchain, vector<Transakcija>& transakcijos, vector<Vartotojas>& vartotojai, int maxKasimoLaikas, int maxBandymuSkaicius) {
-    int minerioID=1;
-    while (!transakcijos.empty()) {
-        vector<Blokas> kandidatai;
-
-        // Sukuriame 5 blokų kandidatus
-        for (int i = 0; i < 5; ++i) {
-            vector<Transakcija> kandidatoTransakcijos;
-            std::sample(transakcijos.begin(), transakcijos.end(), std::back_inserter(kandidatoTransakcijos), 100, std::mt19937{std::random_device{}()});
-            string minerioVardas = "Kamile_" + std::to_string(minerioID++);
-            Blokas kandidatas(blockchain.back().getBlokoHash(), kandidatoTransakcijos, 3, "v0.2", minerioVardas);
-            kandidatai.push_back(kandidatas);
-        }
-
-        // Bandom iškasti vieną iš kandidatų
-        if (kasimasSuKandidatais(kandidatai, maxBandymuSkaicius, maxKasimoLaikas)) {
-            // Randame iškastą bloką
-            Blokas iskastasBlokas = *std::find_if(kandidatai.begin(), kandidatai.end(), [](const Blokas& b) { return b.getIsMined(); });
-
-            // Pridedame bloką prie blockchain
-            blockchain.push_back(iskastasBlokas);
-            iskastasBlokas.printBlock();
-
-            // Ištriname transakcijas, kurios buvo panaudotos
-            for (const auto& tx : iskastasBlokas.getTransact()) {
-                transakcijos.erase(std::remove_if(transakcijos.begin(), transakcijos.end(), [&](const Transakcija& t) { return t.getId() == tx.getId(); }), transakcijos.end());
-            }
-            atnaujintiBalansus(iskastasBlokas.getTransact(), vartotojai);
-        } else {
-            // Nepavyko iškasti, padidiname laiką arba bandymų skaičių ir kartojame
-            maxKasimoLaikas += 5;
-            maxBandymuSkaicius += 50000;
-        }
-    }
-}
 void kolYraTransakciju(vector<Blokas>& blockchain, vector<Transakcija>& transakcijosMemPool, vector<Vartotojas>& vartotojai, int difTrgt){
         // Kol yra neapdorotų transakcijų mempoole
     int ID = 1;
@@ -743,23 +495,6 @@ void kolYraTransakciju(vector<Blokas>& blockchain, vector<Transakcija>& transakc
             }
             vector<Transakcija> galimosTransakcijos = validIBloka(naujoBlokoTransakcijos, vartotojai);
     
-//            // Filtruojame tinkamas transakcijas
-//            std::vector<Transakcija> validTransakcijos;
-//            for (const auto& transakcija : naujoBlokoTransakcijos) {
-//                if (transakcijosTikrinimas(transakcija, vartotojai)) {
-//                    validTransakcijos.push_back(transakcija); // Įtraukiame tik patvirtintas transakcijas
-//                }
-//                else
-//                {
-//                    auto it = std::find_if(transakcijosMemPool.begin(), transakcijosMemPool.end(), [&](const Transakcija& t) {
-//                        return t.getId() == transakcija.getId();
-//                    });
-//                    if (it != transakcijosMemPool.end()) {
-//                        transakcijosMemPool.erase(it);
-//                    }
-//    
-//                }
-//            }
     
             if (galimosTransakcijos.empty()) {
                 std::cout << "Nepavyko rasti tinkamų transakcijų šiame cikle." << std::endl;
@@ -775,7 +510,7 @@ void kolYraTransakciju(vector<Blokas>& blockchain, vector<Transakcija>& transakc
     
             // 4. Jei sėkmingai rastas tinkamas hash:
             // - Ištrinti transakcijas iš mempool
-            for (const auto& transakcija : galimosTransakcijos) {
+            for (const auto& transakcija : naujoBlokoTransakcijos) {
                 auto it = std::find_if(transakcijosMemPool.begin(), transakcijosMemPool.end(), [&](const Transakcija& t) {
                     return t.getId() == transakcija.getId();
                 });
@@ -783,20 +518,7 @@ void kolYraTransakciju(vector<Blokas>& blockchain, vector<Transakcija>& transakc
                     transakcijosMemPool.erase(it);
                 }
             }
-    
-            // - Atnaujinti vartotojų balansus
-//            for (const auto& transakcija : validTransakcijos) {
-//                auto siuntejas = std::find_if(vartotojai.begin(), vartotojai.end(), [&](const Vartotojas& v) {
-//                    return v.getpKey() == transakcija.getSiuntejas();
-//                });
-//                auto gavejas = std::find_if(vartotojai.begin(), vartotojai.end(), [&](const Vartotojas& v) {
-//                    return v.getpKey() == transakcija.getGavejas();
-//                });
-//                if (siuntejas != vartotojai.end() && gavejas != vartotojai.end()) {
-//                    siuntejas->atnaujintiBalansa(-transakcija.getSuma());
-//                    gavejas->atnaujintiBalansa(transakcija.getSuma());
-//                }
-//            }
+
             atnaujintiBalansus(naujasBlokas.getTransact(), vartotojai);
     
             // - Pridėti bloką prie blokų grandinės
