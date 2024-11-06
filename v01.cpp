@@ -75,7 +75,8 @@ int main()
         cout << "1 - isvesti bloka\n";
         cout << "2 - isvesti transakcija\n";
         cout << "3 - isvesti vartotoja\n";
-        cout << "4 - baigti darba\n";
+        cout << "4 - isvesti bloka su transakcijomis\n";
+        cout << "5 - baigti darba\n";
         cin >> rinktis;
         while(!cin>>rinktis || rinktis <1 || rinktis > 4)
         {
@@ -136,6 +137,21 @@ int main()
                     cout << "Su siuo viesuoju raktu vartotojas nebuvo rastas" << endl;
                 }
                 
+            }
+            case 4:{
+                string hash;
+                cout << "Iveskite bloko hash: \n";
+                cin >> hash;
+                auto it = std::find_if(blockchain.begin(), blockchain.end(), [&](const Blokas& blokas){
+                    return blokas.getBlokoHash() == hash;
+                });
+                if(it != blockchain.end()){
+                    it->printBlockWithTrans();
+                }
+                else {
+                    cout << "Blokas su siuo hash nerastas.\n";
+                }
+                break;
             }
         }
     
@@ -363,16 +379,16 @@ void vykdytiKasima(vector<Blokas>& blockchain, vector<Transakcija>& transakcijos
         std::sample(transakcijos.begin(), transakcijos.end(), std::back_inserter(bandomosTransakcijos), 100, std::mt19937{std::random_device{}()});
         string minerioVardas = "Kamile_" + std::to_string(minerioID++);
         vector<Transakcija> validTransakcijos = validIBloka(bandomosTransakcijos, vartotojai);
-        Blokas kandidatas(blockchain.back().getBlokoHash(), validTransakcijos, 4, "v0.2", minerioVardas);
+        Blokas kandidatas(blockchain.back().getBlokoHash(), validTransakcijos, 3, "v0.2", minerioVardas);
         kandidatai.push_back(kandidatas);
     }
     
-    std::vector<std::thread> gijos;
+    
     std::atomic<bool> blokasPridetas(false); // žymė, ar pirmas blokas jau pridėtas
     bool blokasIskastas = false; // zymi ar bent vienas blokas iskastas
     
     do{
-        
+        std::vector<std::thread> gijos;
         // Lygiagrečiai kasame kiekvieną kandidatą su gijos ID
         for (size_t i = 0; i < kandidatai.size(); i++) {
             gijos.emplace_back([&, i, maxKasimoLaikas, maxBandymuSkaicius]() {
