@@ -157,7 +157,7 @@ int main()
     
         
         
-    } while(rinktis!=4);
+    } while(rinktis!=5);
 //
     
     return 0;
@@ -323,7 +323,7 @@ void atnaujintiBalansus(const vector<Transakcija>& transakcijos, vector<Vartotoj
             return v.getpKey() == transakcija.getGavejas();
         });
         // ar siuntejas ir gavejas rasti
-        if (siuntejas != vartotojai.end() && gavejas != vartotojai.end()) {
+        if (siuntejas != vartotojai.end() && gavejas != vartotojai.end() && hashFunkcija(siuntejas->getpKey() + gavejas->getpKey()+to_string(transakcija.getSuma())) == transakcija.getId()) {
             // jei rasti, tikrinama ar siuntejo utxo suma (balansas) yra pakankamas
             if (siuntejas->getBalance() < transakcija.getSuma()) {
                 std::cout << "Nepakanka lėšų siuntėjo balanse. Transakcija atmesta." << std::endl;
