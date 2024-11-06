@@ -183,8 +183,14 @@ Vieši getter ir setter metodai: Kiekviena klasė suteikia prieigą prie duomen�
 
 
 2. Klasėse naudojami konstruktoriai, RAII užtikrina kad resursai bus atlaisvinti, kai jų nebereikės.
-## v0.2
-Pridėtas UTXO modelis, transakcijų verifikavimas prieš dedant į bloką bei atliekant transakcijas, pridėta nauja kasimo funkcija su sąlygomis (bandymų skaičiumi ir laiku).
+# v0.2
+Pridėtas UTXO modelis, transakcijų verifikavimas prieš dedant į bloką bei atliekant transakcijas, pridėta nauja kasimo funkcija su sąlygomis (bandymų skaičiumi ir laiku), įgyvendintas lygiagretus 5 blokų kasimas.
+## Veikimas
+1. Sugeneruojami vartotojai ir transakcijos
+2. Sukuriamas genesis blokas
+3. Klausiama ką nori vartotojas daryti toliau: 1 - kasti blokus tol kol yra nepanaudotų transakcijų, 2 - kasti 5 blokus kandidatus.
+4. Pasirinkus bus atitinkamai arba sugeneruota 101 bloko grandin4 arba kasami 5 blokai kandidatai ir sudaroma 2 blokų grandinė.
+5. Po šių veiksmų bus galima pasirinkti ką daryti toliau: išvesti bloką, išvesti transakciją, išvesti vartotoją.
 ### Vartotoju ir transakcijų generavimas
 Paleidus programą bus rodoma taip: 
 
