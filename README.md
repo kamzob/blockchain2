@@ -192,7 +192,8 @@ Pridėtas UTXO modelis, transakcijų verifikavimas prieš dedant į bloką bei a
 4. Pasirinkus bus atitinkamai arba sugeneruota 101 bloko grandin4 arba kasami 5 blokai kandidatai ir sudaroma 2 blokų grandinė.
 5. Po šių veiksmų bus galima pasirinkti ką daryti toliau: išvesti bloką, išvesti transakciją, išvesti vartotoją.
 <img width="887" alt="Screenshot 2024-11-06 at 17 42 16" src="https://github.com/user-attachments/assets/d7566211-5bd3-400c-ad37-de28bbdd4de6">
-<img width="423" alt="Screenshot 2024-11-06 at 17 42 39" src="https://github.com/user-attachments/assets/e1f28c47-a657-4be8-87d3-12e0dca8a1c4">
+
+<img width="972" alt="Screenshot 2024-11-06 at 17 56 57" src="https://github.com/user-attachments/assets/7069ca7f-030e-484d-a493-d3e8b2c9ae19">
 
 
 
