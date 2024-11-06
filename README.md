@@ -186,4 +186,11 @@ Vieši getter ir setter metodai: Kiekviena klasė suteikia prieigą prie duomen�
 Pridėtas UTXO modelis, transakcijų verifikavimas prieš dedant į bloką bei atliekant transakcijas, pridėta nauja kasimo funkcija su sąlygomis (bandymų skaičiumi ir laiku).
 
 
+### Lygiagretus 5 blokų kandidatų kasimas
+<img width="814" alt="Screenshot 2024-11-06 at 03 18 56" src="https://github.com/user-attachments/assets/1e613d64-05de-4cf6-b3ce-a514a7971223">
+
+<img width="807" alt="Screenshot 2024-11-06 at 03 19 28" src="https://github.com/user-attachments/assets/97da9dd7-50ea-4a59-bcd1-4b3f51e41888">
+
+<img width="800" alt="Screenshot 2024-11-06 at 03 20 03" src="https://github.com/user-attachments/assets/ef56f979-1a45-44cb-a393-260e128e26d3">
+
 
