@@ -246,7 +246,7 @@ public:
             auto dabartinisLaikas = std::chrono::steady_clock::now();
             auto laikasPraejo = std::chrono::duration_cast<std::chrono::seconds>(dabartinisLaikas - pradziosLaikas).count();
             if (laikasPraejo >= maxKasimoLaikas) {
-            std::cout << "Kasimo laiko limitas viršytas. Blokas neiškastas." << std::endl;
+            std::cout << "Kasimo laiko limitas viršytas. Blokas neiškastas. Kasejas: " << minerioVardas_ << std::endl;
                 return;
             }
         }
