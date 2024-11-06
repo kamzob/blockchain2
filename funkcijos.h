@@ -12,9 +12,7 @@
 string hashFunkcija(string input);
 class UTXO{
 public:
-//    string transakcijosID;
     string utxoID;
-    int indeksas;
     string vartotojoPK;
     int suma_;
     UTXO(){}
@@ -28,7 +26,6 @@ class Vartotojas{
 private:
     string vardas_;
     string viesRaktas_;
-//    int valiutosBal_;
     vector <UTXO> utxos_;
 public:
     Vartotojas() = default;
@@ -82,6 +79,10 @@ public:
         cout << "Viesasis raktas: " << viesRaktas_ << endl;
         cout << "Valiutos balansas: " << getBalance()<< endl;
         cout << "UTXO:" << endl;
+        for(const auto& ut: utxos_)
+        {
+            cout << ut.utxoID << " Suma:" << ut.suma_ << endl;
+        }
     }
     
 };
@@ -136,7 +137,6 @@ public:
         laikas_ = time(nullptr);
         merkle_root_hash_ = skaiciuotiMerkleRoot();
         nonce_ = 0;
-//        bloko_hash_ = mineBlock();
         
     }
     string getMinerioVardas() const {return minerioVardas_;}
@@ -262,75 +262,27 @@ public:
         cout << "Bloko hash: " << bloko_hash_ << endl;
         cout << "Transakcijų kiekis: " << transakcijos_.size() << endl;
         cout << "Bloka iskase: " << minerioVardas_ << endl;
-//        for (const auto& tx : transakcijos_) {
-//            cout << "Transakcija ID: " << tx.getId() << " Siuntėjas: " << tx.getSiuntejas()
-//                 << " Gavėjas: " << tx.getGavejas() << " Suma: " << tx.getSuma() << endl;
-//        }
+
+        cout << "-----------------------" << endl;
+    }
+    void printBlockWithTrans() {
+        cout << "Blokas:" << endl;
+        cout << "Versija: " << versija_ << endl;
+        cout << "Ankstesnis bloko hash: " << prev_bloko_hash_ << endl;
+        cout << "Merkle šaknis: " << merkle_root_hash_ << endl;
+        cout << "Timestamp: " << put_time(localtime(&laikas_), "%Y-%m-%d %H:%M:%S") << endl;
+        cout << "Nonce: " << nonce_ << endl;
+        cout << "Bloko hash: " << bloko_hash_ << endl;
+        cout << "Transakcijų kiekis: " << transakcijos_.size() << endl;
+        cout << "Bloka iskase: " << minerioVardas_ << endl;
+        for (const auto& tx : transakcijos_) {
+            cout << "Transakcija ID: " << tx.getId() << " Siuntėjas: " << tx.getSiuntejas()
+                 << " Gavėjas: " << tx.getGavejas() << " Suma: " << tx.getSuma() << endl;
+        }
         cout << "-----------------------" << endl;
     }
     
 };
-//class Blockchain {
-//private:
-//    vector<Blokas> blokai_;
-//    vector<Transakcija> nepatvirtintosTransakcijos;
-//    int difficultyTarget;
-//
-//public:
-//    Blockchain(int difficulty)
-//        : difficultyTarget(difficulty) {
-//        // Sukurkite pradžios bloką
-//        vector<Transakcija> pradinesTransakcijos;
-//        Blokas pirmasBlokas("0", pradinesTransakcijos, difficultyTarget, "1.0");
-//        pirmasBlokas.mineBlock();
-//        blokai_.push_back(pirmasBlokas);
-//    }
-//
-//    void pridetiTransakcija(const Transakcija& transakcija) {
-//        nepatvirtintosTransakcijos.push_back(transakcija);
-//    }
-////
-////    vector<Transakcija> pasirinktiAtsitiktinesTransakcijas(int kiekis) {
-////        vector<Transakcija> pasirinktos;
-////        std::random_shuffle(nepatvirtintosTransakcijos.begin(), nepatvirtintosTransakcijos.end());
-////        int count = min(kiekis, (int)nepatvirtintosTransakcijos.size());
-////        pasirinktos.insert(pasirinktos.end(), nepatvirtintosTransakcijos.begin(), nepatvirtintosTransakcijos.begin() + count);
-////        return pasirinktos;
-////    }
-//
-//    void atnaujintiBalansus(vector<Transakcija>& transakcijos) {
-//        // Atnaujinkite vartotojų balansus pagal įvykdytas transakcijas
-//        for (auto& trans : transakcijos) {
-//            // pvz., atnaujinkite siuntėjo ir gavėjo balansus čia
-//            
-//        }
-//    }
-//
-//    void pridetiBloka(Blokas& blokas) {
-//        blokai_.push_back(blokas);
-//    }
-//
-//    void kasimasIrAtnaujinimas() {
-//        while (!nepatvirtintosTransakcijos.empty()) {
-//            vector<Transakcija> transakcijosBlokui = pasirinktiAtsitiktinesTransakcijas(100);
-//
-//            Blokas naujasBlokas(blokai_.back().getBlokoHash(), transakcijosBlokui, difficultyTarget, "1.0");
-//            naujasBlokas.mineBlock();
-//            
-//            pridetiBloka(naujasBlokas);
-//
-//            atnaujintiBalansus(transakcijosBlokui);
-//
-//            // Pašalinkite į bloką įtrauktas transakcijas iš nepatvirtintų sąrašo
-//            for (const auto& trans : transakcijosBlokui) {
-//                auto itr = find(nepatvirtintosTransakcijos.begin(), nepatvirtintosTransakcijos.end(), trans);
-//                if (itr != nepatvirtintosTransakcijos.end()) {
-//                    nepatvirtintosTransakcijos.erase(itr);
-//                }
-//            }
-//        }
-//    }
-//};
 
 void naudojimosiInstrukcija();
 
