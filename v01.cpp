@@ -298,44 +298,6 @@ vector<Transakcija> validIBloka(const vector<Transakcija>& atsitiktinesTransakci
     return galiojanciosTransakcijos;
 }
 
-bool kasimasSuKandidatais(vector<Blokas>& kandidatai, int maxBandymuSkaicius, int maxKasimoLaikas) {
-    std::atomic<bool> blokasSurastas(false);  // Kai vienas kandidatas sėkmingai išminavo bloką, nustatomas į true
-        std::vector<std::thread> threads;
-
-        // Pradėkime lygiagretų kasimą kiekvienam kandidatui
-        for (auto& kandidatas : kandidatai) {
-            threads.emplace_back([&kandidatas, &blokasSurastas, maxBandymuSkaicius, maxKasimoLaikas]() {
-                std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 10));
-                int bandymai = 0;
-                auto pradziosLaikas = std::chrono::steady_clock::now();
-
-                // Kasimo ciklas, kuris vykdomas tol, kol nerandamas blokas ar pasiekiamas laiko/bandymų limitas
-                while (!blokasSurastas && bandymai < maxBandymuSkaicius) {
-                    kandidatas.mineBlock();  // Kasiname bloką
-                    if (kandidatas.getIsMined()) {
-                        blokasSurastas = true;  // Pavyko rasti bloką - sustabdome kitas gijas
-                        break;
-                    }
-                    bandymai++;
-
-                    // Tikriname, ar nepasiekėme kasimo laiko limito
-                    auto dabartinisLaikas = std::chrono::steady_clock::now();
-                    auto laikasPraejo = std::chrono::duration_cast<std::chrono::seconds>(dabartinisLaikas - pradziosLaikas).count();
-                    if (laikasPraejo >= maxKasimoLaikas) {
-                        break;  // Nutraukiame, jei pasiekėme laiko limitą
-                    }
-                }
-            });
-        }
-
-        // Laukiame, kol visos gijos baigs darbą
-        for (auto& t : threads) {
-            t.join();
-        }
-
-        // Tikriname, ar kuris nors blokas buvo sėkmingai iškastas
-        return blokasSurastas;
-}
 void atnaujintiBalansus(const vector<Transakcija>& transakcijos, vector<Vartotojas>& vartotojai) {
     for (const auto& transakcija : transakcijos) {
         auto siuntejas = std::find_if(vartotojai.begin(), vartotojai.end(), [&](const Vartotojas& v) {
@@ -389,9 +351,11 @@ void atnaujintiBalansus(const vector<Transakcija>& transakcijos, vector<Vartotoj
 
 
 
+
 void vykdytiKasima(vector<Blokas>& blockchain, vector<Transakcija>& transakcijos, vector<Vartotojas>& vartotojai, int maxKasimoLaikas, int maxBandymuSkaicius) {
     int minerioID = 1;
     vector<Blokas> kandidatai;
+    
     
     // Paruošiame 5 kandidatinius blokus
     for (int i = 0; i < 5; i++) {
@@ -404,46 +368,55 @@ void vykdytiKasima(vector<Blokas>& blockchain, vector<Transakcija>& transakcijos
     }
     
     std::vector<std::thread> gijos;
+    std::atomic<bool> blokasPridetas(false); // žymė, ar pirmas blokas jau pridėtas
+    bool blokasIskastas = false; // zymi ar bent vienas blokas iskastas
     
-    // Lygiagrečiai kasame kiekvieną kandidatą su gijos ID
-    for (size_t i = 0; i < kandidatai.size(); i++) {
-        gijos.emplace_back([&, i, maxKasimoLaikas, maxBandymuSkaicius]() {
-            kandidatai[i].kastiBlokaSuLimitais(maxKasimoLaikas, maxBandymuSkaicius);
-            if (kandidatai[i].getIsMined()) {
-                std::cout << "Gija " << i << " sėkmingai iškasė bloką su nonce: " << kandidatai[i].getNonce() << std::endl;
-                kandidatai[i].printBlock();
+    do{
+        
+        // Lygiagrečiai kasame kiekvieną kandidatą su gijos ID
+        for (size_t i = 0; i < kandidatai.size(); i++) {
+            gijos.emplace_back([&, i, maxKasimoLaikas, maxBandymuSkaicius]() {
+                kandidatai[i].kastiBlokaSuLimitais(maxKasimoLaikas, maxBandymuSkaicius);
+                if (kandidatai[i].getIsMined()) {
+                    std::cout << "Gija " << i << " sėkmingai iškasė bloką su nonce: " << kandidatai[i].getNonce() << std::endl;
+                    kandidatai[i].printBlock();
+                    blokasIskastas = true;
+                    if(!blokasPridetas.exchange(true))
+                    {
+                        cout << "^" << endl;
+                        cout << "|" << endl;
+                        cout << "Šis blokas pridedamas i bloku grandine" << endl;
+                        for (const auto& tx : kandidatai[i].getTransact()) {
+                            transakcijos.erase(std::remove_if(transakcijos.begin(), transakcijos.end(),
+                                                              [&](const Transakcija& t) { return t.getId() == tx.getId(); }),
+                                               transakcijos.end());
+                        }
+                        atnaujintiBalansus(kandidatai[i].getTransact(), vartotojai);
+                        
+                        
+                        blockchain.push_back(kandidatai[i]);
+                        
+                    }
+                }
+            });
+        }
+        
+        
+        // Laukiame, kol visos gijos baigs kasimą
+        for (auto& gija : gijos) {
+            if (gija.joinable()) {
+                gija.join();
             }
-        });
-    }
+        }
+        if (!blokasIskastas) {
+            maxKasimoLaikas += 5; // Padidiname laiką, pavyzdžiui, 5 sekundėmis
+            maxBandymuSkaicius += 50000; // Padidiname bandymų limitą, pavyzdžiui, 50 000
+            std::cout << "Nepavyko iškasti nė vieno bloko per pradinį laiką. Didiname kasimo laiką iki "<< maxKasimoLaikas << " ir bandymų skaičių iki " << maxBandymuSkaicius << std::endl;
+            
+        }
+    } while(!blokasIskastas && !blokasPridetas);
+    
 
-    
-    // Laukiame, kol visos gijos baigs kasimą
-    for (auto& gija : gijos) {
-        if (gija.joinable()) {
-            gija.join();
-        }
-    }
-    
-    // Tikriname, ar bent vienas blokas buvo iškastas ir pridedame jį prie blockchain
-    for (auto& kandidatas : kandidatai) {
-        if (kandidatas.getIsMined()) {
-            std::cout << "Blokas sėkmingai iškastas!" << std::endl;
-            kandidatas.printBlock();
-            
-            // Pašaliname panaudotas transakcijas iš `mempool`
-            for (const auto& tx : kandidatas.getTransact()) {
-                transakcijos.erase(std::remove_if(transakcijos.begin(), transakcijos.end(),
-                                                  [&](const Transakcija& t) { return t.getId() == tx.getId(); }),
-                                   transakcijos.end());
-            }
-            
-            // Atnaujiname vartotojų balansus
-            atnaujintiBalansus(kandidatas.getTransact(), vartotojai);
-            
-            // Pridedame iškastą bloką prie blockchain
-            blockchain.push_back(kandidatas);
-        }
-    }
 }
     
     // paprastas kasimas 5 bloku kandidatu
