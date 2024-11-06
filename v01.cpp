@@ -78,11 +78,11 @@ int main()
         cout << "4 - isvesti bloka su transakcijomis\n";
         cout << "5 - baigti darba\n";
         cin >> rinktis;
-        while(!cin>>rinktis || rinktis <1 || rinktis > 4)
+        while(!cin>>rinktis || rinktis <1 || rinktis > 5)
         {
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Klaida! Turite pasirinkti nuo 1 iki 4\n";
+            cout << "Klaida! Turite pasirinkti nuo 1 iki 5\n";
             cin >> rinktis;
         }
         switch(rinktis)
