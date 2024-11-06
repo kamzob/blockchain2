@@ -346,4 +346,5 @@ bool kandidatoKasimas(Blokas& kandidatas, int maxBandymuSkaicius, int maxKasimoL
 bool kasimasSuKandidatais(vector<Blokas>& kandidatai, int maxBandymuSkaicius, int maxKasimoLaikas);
 void atnaujintiBalansus(const vector<Transakcija>& transakcijos, vector<Vartotojas>& vartotojai);
 void vykdytiKasima(vector<Blokas>& blockchain, vector<Transakcija>& transakcijos, vector<Vartotojas>& vartotojai, int maxKasimoLaikas, int maxBandymuSkaicius);
+void kolYraTransakciju(vector<Blokas>& blockchain, vector<Transakcija>& transakcijosMemPool, vector<Vartotojas>& vartotojai, int difTrgt);
 #endif /* funkcijos_h */
